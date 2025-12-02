@@ -1,0 +1,2 @@
+import autotesting
+print('Imported')

@@ -1,0 +1,193 @@
+
+# 10. Text & Semantic Analysis Modules
+  text_analysis:
+    # 10.1 Statistical Fingerprinting (LLM Artifacts)
+    statistical_metrics:
+      enabled: true
+      weight: 1.0
+      engine: "local_llm" # GPT-2/RoBERTa for PPL baseline
+      base_model: "gpt2-medium"
+      metrics:
+        perplexity:
+          enabled: true
+          window_size: 512
+        burstiness:
+          enabled: true
+          method: "sentence_length_variance"
+      thresholds:
+        max_ppl_for_ai: 30.0 # Low PPL indicates machine generation
+        min_burst_for_ai: 0.5 # Low burstiness indicates machine generation
+
+    # 10.2 Stylometry & Logic
+    stylometry:
+      enabled: true
+      weight: 1.5
+      features:
+        - "function_word_density" # Furthermore, Moreover
+        - "pos_distribution" # Adjective/Adverb ratio
+        - "n_gram_repetition" # Repetitive patterns
+
+    # 10.3 Vertical Specialist (Context Aware)
+    vertical_engines:
+      enabled: true
+      routing_logic: "auto_detect" # academic | news | creative
+      modules:
+        academic:
+          engine: "AIPaperPass_API"
+          focus: ["citation_hallucination", "structure_integrity"]
+        news:
+          engine: "WinstonAI_API"
+          focus: ["fact_checking", "source_verification"]
+
+    # 10.4 Adversarial Defense
+    adversarial_defense:
+      enabled: true
+      actions:
+        - "strip_zero_width_chars"
+        - "normalize_unicode" # Homoglyph attack prevention
+
+# 11. Governance & Compliance Modules
+governance:
+  gb_45436_2025:
+    enabled: true
+    strict_mode: true # Mark non-compliant as "Fake"
+    
+    # 11.1 Implicit Label Check
+    implicit_check:
+      required_fields:
+        - "AIGC" # Must contain AIGC tag
+      json_schema:
+        label: [1, 2, 3] # 1: Real, 2: Synthetic, 3: Assisted
+        contentProducer: "string"
+        contentPropagator: "string"
+
+    # 11.2 Explicit Label Check
+    explicit_check:
+      # Image Rules
+      image:
+        min_height_ratio: 0.05
+        logo_position: "bottom_right"
+      # Video Rules
+      video:
+        min_duration_seconds: 2.0
+        logo_position: "start_frame" # Or persistent
+      # Audio Rules
+      audio:
+        audible_watermark: true # Requires audible "AI Generated" prompt
+        spectral_watermark: true
+
+  # 11.3 Platform Specific
+  tiktok_policy:
+    enabled: true
+    # Integrity and Authenticity
+    red_flags:
+      - "deep_fake_face_swap" # Prohibited without disclosure
+
+# 12. Fusion & Inference Engine
+fusion_engine:
+  enabled: true
+  algorithm: "XGBoost_Ensemble" # Swiss Cheese Model
+  model_path: "/models/fusion/panopticon_xgb_v3.json"
+
+  # 12.1 Feature Vector Mapping
+  feature_map:
+    # Metadata
+    - source: "metadata.c2pa_found" # 0/1
+    - source: "metadata.label_level" # 0/1/2/3
+    # Text
+    - source: "text.perplexity_score"
+    - source: "text.burstiness_score"
+    # Visual
+    - source: "visual.frequency_variance"
+    - source: "visual.texture_ratio"
+    - source: "visual.dire_score"
+    # Bio-Physical
+    - source: "bio.ppg_snr"
+    - source: "bio.blink_variance"
+    - source: "bio.liveness_score"
+    # AV Sync
+    - source: "multimodal.av_correlation"
+    - source: "multimodal.lighting_cos"
+
+  # 12.2 Logic Parameters
+  inference:
+    threshold_mapping:
+      method: "sigmoid_scaling"
+      parameters:
+        k: 12.0 # Steepness
+        x0: 0.5 # Center point
+
+    # Dynamic Penalty
+    penalties:
+      - feature: "multimodal.av_correlation"
+        threshold: "<0.2"
+        score_add: 35.0 # Sync failure is critical
+      - feature: "bio.ppg_snr"
+        threshold: "<0.1"
+        score_add: 25.0 # No heartbeat is critical
+
+# 13. AIP Scoring & Decision Logic
+aip_scoring:
+  enabled: true
+  method: "weighted_sum"
+  
+  # 13.1 Hard Veto Rules (Override ML)
+  hard_rules:
+    - id: "HR_001"
+      condition: "metadata.c2pa_manifest_valid == 1"
+      action: "set_score_0" # Authenticated Real
+      reason: "Explicit C2PA Signature Detected"
+    - id: "HR_002"
+      condition: "metadata.xmp.software contains 'Midjourney'"
+      action: "set_score_100" # Known Generator
+      reason: "Explicit Generator Signature"
+
+  # 13.2 Risk Classification
+  risk_levels:
+    - range: [0, 20]
+      label: "SAFE"
+      action: "pass"
+    - range: [20, 60]
+      label: "SUSPICIOUS"
+      action: "human_review"
+    - range: [60, 90]
+      label: "HIGH_RISK"
+      action: "demote" # Reduce visibility
+    - range: [90, 100]
+      label: "CRITICAL"
+      action: "block" # Takedown
+
+# 14. Reporting Module
+reporting_module:
+  enabled: true
+  output_dir: "/data/reports"
+  
+  # 14.1 Per-Session Audit Report
+  audit_report:
+    format: "xlsx"
+    template: "templates/audit_report_v3.xlsx"
+    sheets:
+      - name: "Executive Summary"
+        content: ["file_id", "aip_score", "risk_level", "final_verdict", "processing_time"]
+      - name: "Visual Forensics"
+        content: ["freq_dect_score", "patch_craft_ratio", "dire_score", "lighting_consistency"]
+      - name: "Bio Metrics"
+        content: ["heart_rate_bpm", "rppg_snr", "blink_rate", "micro_expression_score"]
+      - name: "Text Analysis"
+        content: ["ppl_last", "ai_prob", "burstiness"]
+      - name: "Compliance Check"
+        content: ["has_explicit_label", "has_implicit_label", "label_content_valid"]
+
+  # 14.2 Cumulative Statistics
+  daily_statistics:
+    enabled: true
+    store_source: "redis" # Redis HyperLogLog
+    update_interval_sec: 10
+
+# 15. System Self-Healing & Evolution
+evolution_loop:
+  active_learning:
+    enabled: true
+    # Auto-collect "SUSPICIOUS" (40-60) samples for retraining
+    sample_collection_range: [40, 60]
+    upload_bucket: "s3://panopticon-retrain-pool"

@@ -1,0 +1,1 @@
+print("Test parse")\n# -*- coding: utf-8 -*-\nprint("After encoding")
