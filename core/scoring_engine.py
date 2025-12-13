@@ -46,6 +46,21 @@ class ScoringEngine:
             'semantic_stylometry', 'sensor_noise_authenticator', 'physics_violation_detector'
         ]
 
+        # FR-TSAR: 加載訓練後參數（若存在），以最小認知成本覆蓋配置
+        self.trained = {
+            'thresholds': {},
+            'weights': {}
+        }
+        try:
+            import json, os
+            params_path = os.path.join('config', 'trained_params.json')
+            if os.path.exists(params_path):
+                with open(params_path, 'r', encoding='utf-8') as f:
+                    self.trained = json.load(f)
+                logging.info("[TERTIARY_TIER] Loaded trained_params.json")
+        except Exception as e:
+            logging.warning(f"[TERTIARY_TIER] Failed to load trained_params.json: {e}")
+
     def _spark_plug_calculate_weights(
         self,
         features: VideoFeatures,
@@ -76,6 +91,16 @@ class ScoringEngine:
         weights['semantic_stylometry'] = 0.8
         weights['sensor_noise_authenticator'] = 2.0
         weights['physics_violation_detector'] = 1.8
+
+        # 應用訓練後權重覆蓋
+        trained_weights = (self.trained or {}).get('weights', {})
+        if isinstance(trained_weights, dict) and trained_weights:
+            for name, w in trained_weights.items():
+                if name in weights:
+                    try:
+                        weights[name] = float(w)
+                    except Exception:
+                        pass
 
         # FR-TSAR: 社交媒体视频动态调整
         is_social_media = (400000 < bitrate < 1500000) or ('download' in base_name)
@@ -119,8 +144,10 @@ class ScoringEngine:
 
         # FR-TSAR: 第一性原理 - 绝对判定优先
 
+        thr = (self.trained or {}).get('thresholds', {})
+        mfp_abs_ai = float(thr.get('mfp_abs_ai', 88.0))
         # === 阶段1: MFP绝对判定 ===
-        if mfp >= 88:
+        if mfp >= mfp_abs_ai:
             return 98.0, f"ABSOLUTE AI: MFP={mfp:.1f} (绝对AI特征)"
 
         # 真实视频保护条件
@@ -178,20 +205,23 @@ class ScoringEngine:
         # TikTok平台政策
         beautify_filter_ai = (
             (is_phone_video or is_social_media) and
-            face_presence >= 0.50 and tn <= 20 and tf <= 35 and
-            static_ratio < 0.2 and ((mfp >= 45) or (pvd >= 70))
+            face_presence >= float(thr.get('beautify_face_presence', 0.50)) and
+            tn <= float(thr.get('beautify_tn', 20.0)) and
+            tf <= float(thr.get('beautify_tf', 35.0)) and
+            static_ratio < float(thr.get('beautify_static', 0.20)) and
+            ((mfp >= float(thr.get('beautify_mfp_or_pvd', 70.0))) or (pvd >= float(thr.get('beautify_mfp_or_pvd', 70.0))))
         )
         if beautify_filter_ai:
             ai_p = max(ai_p, 85.0)
             rationale += " | 平台政策: 美颜/换脸"
 
         # 强AI模式检测
-        if sna >= 75 and not real_guard:
+        if sna >= float(thr.get('sna_high', 75.0)) and not real_guard:
             boost = 15.0 if is_social_media else 30.0
             ai_p += boost
             rationale += f" | 传感器噪声异常 (+{boost})"
 
-        if pvd >= 75 and not real_guard:
+        if pvd >= float(thr.get('pvd_high', 75.0)) and not real_guard:
             boost = 14.0 if is_social_media else 28.0
             ai_p += boost
             rationale += f" | 物理违规 (+{boost})"

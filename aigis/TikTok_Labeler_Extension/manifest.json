@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Aigis - TikTok Rapid Labeler",
+  "version": "1.0.0",
+  "description": "高速TikTok視頻標註工具 - 2秒/視頻",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.tiktok.com/*",
+    "http://127.0.0.1:5000/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.tiktok.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "run_at": "document_end"
+    }
+  ]
+}

@@ -1,0 +1,215 @@
+/**
+ * TSAR-RAPTOR TikTok Labeler - Styles
+ * 猛禽3設計：簡約、高效、視覺衝擊
+ */
+
+/* ========== 歡迎橫幅 ========== */
+.tsar-welcome-banner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 999999;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 30px 50px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  color: white;
+  text-align: center;
+  animation: tsar-banner-fade-in 0.5s ease-out;
+  transition: opacity 0.5s ease-out;
+}
+
+.tsar-welcome-content h2 {
+  margin: 0 0 10px 0;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.tsar-welcome-content p {
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.tsar-key-guide {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.tsar-key-guide span {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 15px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+@keyframes tsar-banner-fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* ========== 統計面板 ========== */
+.tsar-stats-panel {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 999998;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-width: 200px;
+}
+
+.tsar-stats-header {
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  color: #00ff88;
+}
+
+.tsar-stats-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tsar-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.tsar-stat-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tsar-stat-value {
+  font-weight: bold;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  min-width: 30px;
+  text-align: center;
+}
+
+/* ========== 標註反饋 ========== */
+.tsar-label-feedback {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 999999;
+  text-align: center;
+  pointer-events: none;
+  animation: tsar-feedback-pulse 0.8s ease-out;
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+}
+
+.tsar-feedback-emoji {
+  font-size: 6rem;
+  margin-bottom: 10px;
+  animation: tsar-emoji-bounce 0.5s ease-out;
+}
+
+.tsar-feedback-text {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+@keyframes tsar-feedback-pulse {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes tsar-emoji-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* ========== Toast 提示 ========== */
+.tsar-toast {
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  z-index: 999997;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  animation: tsar-toast-slide-in 0.3s ease-out;
+  transition: opacity 0.3s ease-out;
+}
+
+.tsar-toast-success {
+  border-left: 4px solid #00ff88;
+}
+
+.tsar-toast-error {
+  border-left: 4px solid #ff4444;
+}
+
+@keyframes tsar-toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ========== 響應式設計 ========== */
+@media (max-width: 768px) {
+  .tsar-stats-panel {
+    top: 10px;
+    right: 10px;
+    padding: 10px 15px;
+    min-width: 150px;
+  }
+
+  .tsar-feedback-emoji {
+    font-size: 4rem;
+  }
+
+  .tsar-feedback-text {
+    font-size: 1.8rem;
+  }
+}

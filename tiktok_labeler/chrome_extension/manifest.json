@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "TSAR-RAPTOR TikTok Labeler - Tinder式AI檢測標註",
+  "version": "2.0.0",
+  "description": "Tinder式快速標註：← Real | → AI | ↑ Uncertain | ↓ Movie/Anime",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "https://www.tiktok.com/*",
+    "http://127.0.0.1:5000/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.tiktok.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

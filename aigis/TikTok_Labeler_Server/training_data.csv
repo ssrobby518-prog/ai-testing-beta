@@ -1,0 +1,12 @@
+video_url,label,timestamp,model_fingerprint,frequency_analysis,sensor_noise,physics_violation,texture_noise,text_fingerprint,metadata_score,heartbeat,blink_dynamics,lighting_geometry,av_sync,semantic_stylometry,bitrate,fps,duration,resolution,author_id,reason
+https://www.tiktok.com/@user/video/001,1,2025-12-07T12:34:56,83,95,72,81,20,65,40,50,50,15,50,50,741529,30,12.3,720x1280,user001,beautify/face-swap suspected
+https://www.tiktok.com/@user/video/002,0,2025-12-07T12:35:12,12,65,28,22,55,15,45,50,50,20,50,50,980000,30,9.7,1080x1920,user002,real handheld
+https://www.tiktok.com/@user/video/201,1,2025-12-07T12:54:01,,,,,,,,,,,,,,,,,user201,ai
+https://www.tiktok.com/@user/video/201,1,2025-12-07T12:54:01,88.0,92.0,80.0,85.0,10.0,60.0,40.0,50.0,50.0,15.0,50.0,50.0,600000,30,11.0,720x1280,user201,ai strong
+https://www.tiktok.com/,1,2025-12-07T23:37:05.348Z,,,,,,,,,,,,,,,,,unknown,
+https://www.tiktok.com/@user/video/003,1,2025-12-07T12:40:11,,,,,,,,,,,,,,,,,user003,test label
+https://www.tiktok.com/@user/video/101,0,2025-12-07T12:50:01,,,,,,,,,,,,,,,,,user101,real
+https://www.tiktok.com/@user/video/102,1,2025-12-07T12:50:05,,,,,,,,,,,,,,,,,user102,ai
+https://www.tiktok.com/@user/video/103,0,2025-12-07T12:50:12,,,,,,,,,,,,,,,,,user103,real
+https://www.tiktok.com/@user/video/301,0,2025-12-07T12:58:01,,,,,,,,,,,,,,,,,user301,real
+https://www.tiktok.com/@user/video/302,1,2025-12-07T12:58:03,,,,,,,,,,,,,,,,,user302,ai

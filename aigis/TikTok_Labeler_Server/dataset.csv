@@ -1,0 +1,14 @@
+﻿timestamp,video_url,author_id,label,reason,source_version
+2025-12-07T23:37:05.348Z,https://www.tiktok.com/,unknown,1,,aigis_v1
+2025-12-07T12:40:11,https://www.tiktok.com/@user/video/003,user003,1,test label,1.0.0
+2025-12-07T12:50:01,https://www.tiktok.com/@user/video/101,user101,0,real,1.0.0
+2025-12-07T12:50:05,https://www.tiktok.com/@user/video/102,user102,1,ai,1.0.0
+2025-12-07T12:50:12,https://www.tiktok.com/@user/video/103,user103,0,real,1.0.0
+2025-12-07T12:54:01,https://www.tiktok.com/@user/video/201,user201,1,ai,1.0.0
+2025-12-07T12:58:01,https://www.tiktok.com/@user/video/301,user301,0,real,1.0.0
+2025-12-07T12:58:03,https://www.tiktok.com/@user/video/302,user302,1,ai,1.0.0
+2025-12-07T13:05:01,https://www.tiktok.com/@user/video/501,user501,1,ai,1.0.0
+2025-12-07T13:07:21,https://www.tiktok.com/@user/video/601,user601,1,ai,1.0.0
+2025-12-07T17:59:48.0856977-08:00,https://www.tiktok.com/@test/video/alpha,alpha,0,real,aigis_v1
+2025-12-07T17:59:48.1962643-08:00,https://www.tiktok.com/@test/video/beta,beta,1,ai,aigis_v1
+2025-12-07T18:01:12.9457413-08:00,http://localhost/test/a,locala,0,real,aigis_v1

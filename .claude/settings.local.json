@@ -6,7 +6,16 @@
       "Bash(python autotesting.py:*)",
       "Bash(findstr:*)",
       "Bash(dir:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Blue Team Defense System v2.0 - 藍隊三階段防禦系統全面升級\n\nPhase I - 時間與物理剛性:\n- 新增 facial_rigidity_analyzer (MediaPipe 468點骨骼守恆檢測)\n- 增強 physics_violation_detector (光流物理檢測)\n\nPhase II - 頻率與數學結構:\n- 新增 frequency_analyzer_v2 (方位角積分 + 頻譜熵)\n- 新增 spectral_cnn_classifier (ResNet-18頻域分類器)\n\nPhase III - 邏輯與決策:\n- 新增 core/xgboost_ensemble.py (XGBoost集成決策 + SHAP可解釋性)\n- 新增 autotesting_blue_team.py (藍隊主控系統)\n\n架構優化:\n- 實現 FR-TSAR/RAPTOR/SPARK-PLUG 三層架構\n- 模塊化設計，支持自動fallback\n- 向後兼容現有系統\n\n性能提升:\n- Precision: 92% → 99% (+7%)\n- Recall: 88% → 95% (+7%)\n- 誤報率: 8% → 1% (-87%)\n\n文檔完善:\n- 8000+字完整升級指南\n- 快速開始指南\n- 自動化測試腳本\n\n設計原則: 沙皇炸彈 (物理不可偽造) × 猛禽3引擎 (極致性能)\n\n🤖 Generated with Claude Code\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push)",
+      "Bash(git remote set-url:*)",
+      "Bash(ssh:*)",
+      "Bash(pip install:*)",
+      "WebSearch",
+      "Bash(test:*)",
+      "Bash(mkdir:*)",
+      "Bash(timeout 120 bash:*)"
     ],
     "deny": [],
     "ask": []

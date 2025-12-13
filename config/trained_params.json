@@ -1,0 +1,29 @@
+{
+  "generated_at": "2025-12-07 16:41:23",
+  "thresholds": {
+    "mfp_abs_ai": 88.0,
+    "mfp_abs_real": 12.0,
+    "fa_high": 95.0,
+    "sna_high": 75.0,
+    "pvd_high": 81.0,
+    "beautify_face_presence": 0.5,
+    "beautify_tn": 20.0,
+    "beautify_tf": 35.0,
+    "beautify_static": 0.2,
+    "beautify_mfp_or_pvd": 70.0
+  },
+  "weights": {
+    "model_fingerprint_detector": 0.5,
+    "frequency_analyzer": 0.5,
+    "sensor_noise_authenticator": 0.5,
+    "physics_violation_detector": 0.5,
+    "texture_noise_detector": 0.5,
+    "text_fingerprinting": 0.5,
+    "metadata_extractor": 0.5,
+    "heartbeat_detector": 0.5,
+    "blink_dynamics_analyzer": 0.5,
+    "lighting_geometry_checker": 0.5,
+    "av_sync_verifier": 0.5,
+    "semantic_stylometry": 0.5
+  }
+}
