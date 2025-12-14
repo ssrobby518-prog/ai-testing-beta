@@ -124,22 +124,22 @@ def process_input():
 
         weights = {name: 1.0 for name in MODULE_NAMES}
 
-        # 降低不可靠模組的權重
+        # 降低不可靠模組的權重（基於訓練數據優化 2025-12-14）
         weights['metadata_extractor'] = 0.3  # 元數據容易偽造
-        weights['heartbeat_detector'] = 0.5  # AI 可以模擬心跳！
+        weights['heartbeat_detector'] = 0.465  # AI 可以模擬心跳！(-7% based on FP analysis)
         weights['blink_dynamics_analyzer'] = 0.5  # AI 可以模擬眨眼
         weights['lighting_geometry_checker'] = 0.6  # AI 可以模擬手持
         weights['av_sync_verifier'] = 0.6  # AI 可以做好口型同步
 
         # 提高更可靠模組的權重（根據實際測試調整）
-        weights['frequency_analyzer'] = 1.5  # 頻域分析更本質
+        weights['frequency_analyzer'] = 1.3  # 頻域分析更本質 (-13% based on FP analysis)
         weights['texture_noise_detector'] = 1.3  # 紋理分析較可靠
-        weights['model_fingerprint_detector'] = 2.2  # 模型指紋最重要（提高權重）
+        weights['model_fingerprint_detector'] = 1.1  # 模型指紋 (-50% based on FP analysis - 主要誤報源)
         weights['text_fingerprinting'] = 1.4  # 文本模式是 AI 帶貨片的關鍵
         weights['semantic_stylometry'] = 0.8  # 語義分析中等
 
         # 新模組：物理本質檢測（Project Aperture 戰略）
-        weights['sensor_noise_authenticator'] = 2.0  # 傳感器噪聲是物理本質，AI難以完美模擬
+        weights['sensor_noise_authenticator'] = 1.96  # 傳感器噪聲 (-2% based on FP analysis)
         weights['physics_violation_detector'] = 1.8  # 物理規律違反是AI的根本缺陷
 
         # ===== 社交媒體視頻檢測與權重調整 =====
@@ -150,11 +150,12 @@ def process_input():
         is_social_media = (400000 < bitrate < 1500000) or ('download' in base_name)
 
         if is_social_media:
-            # 降低容易因壓縮而誤報的模組權重
-            weights['frequency_analyzer'] = 1.0  # TikTok壓縮產生高頻截斷
-            weights['sensor_noise_authenticator'] = 1.0  # 多次轉碼失去感測器雜訊
-            weights['physics_violation_detector'] = 1.2  # 快速剪輯/穩定處理容易誤判
-            logging.info(f"Social media video detected (bitrate={bitrate}), FA/SNA/PVD weights reduced")
+            # 降低容易因壓縮而誤報的模組權重（基於低bitrate FP分析優化）
+            weights['frequency_analyzer'] = 0.65  # TikTok壓縮產生高頻截斷（進一步降低）
+            weights['sensor_noise_authenticator'] = 0.8  # 多次轉碼失去感測器雜訊
+            weights['physics_violation_detector'] = 1.0  # 快速剪輯/穩定處理容易誤判
+            weights['model_fingerprint_detector'] = 0.7  # 低bitrate壓縮產生偽AI特徵
+            logging.info(f"Social media video detected (bitrate={bitrate}), FA/SNA/PVD/MFP weights reduced")
 
         scores = {}
         weighted_scores = {}
