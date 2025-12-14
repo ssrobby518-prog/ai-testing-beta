@@ -608,16 +608,17 @@ def process_input():
         # ========== 最終限制和日誌 ==========
         ai_p = max(0.0, min(100.0, ai_p))
 
-        # Blue Shield 軟硬限流閾值判定（模擬TikTok機制）
-        if ai_p <= 20:
+        # Blue Shield 軟硬限流閾值判定（訓練閉環調整：降低誤報率）
+        # 人類標註顯示 94% REAL，但 AI 誤判為 AI → 提高門檻
+        if ai_p <= 30:  # 從 20 → 30（更寬容）
             threat_level = "SAFE_ZONE"
             threat_action = "PASS - Video cleared for distribution"
             threat_emoji = "✓"
-        elif ai_p <= 60:
+        elif ai_p <= 75:  # 從 60 → 75（擴大灰色地帶）
             threat_level = "GRAY_ZONE"
             threat_action = "FLAGGED - Shadowban/Manual review recommended"
             threat_emoji = "⚠"
-        else:
+        else:  # >75% 才算 KILL（從 >60 → >75）
             threat_level = "KILL_ZONE"
             threat_action = "BLOCKED - Zero playback / Hard limit"
             threat_emoji = "✗"
@@ -640,7 +641,7 @@ def process_input():
         diagnostic_report = {
             "file_path": file_path,
             "global_probability": float(ai_p),
-            "threat_level": "SAFE" if ai_p <= 20 else ("GRAY_ZONE" if ai_p <= 60 else "KILL_ZONE"),
+            "threat_level": "SAFE" if ai_p <= 30 else ("GRAY_ZONE" if ai_p <= 75 else "KILL_ZONE"),
             "module_scores": {k: float(v) for k, v in scores.items()},
             "weighted_scores": {k: float(v) for k, v in weighted_scores.items()},
             "critical_failure_points": [],
