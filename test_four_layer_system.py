@@ -22,15 +22,15 @@ def print_header(text):
 
 def print_success(text):
     """打印成功信息"""
-    print(f"✅ {text}")
+    print(f"[OK] {text}")
 
 def print_error(text):
     """打印錯誤信息"""
-    print(f"❌ {text}")
+    print(f"[FAIL] {text}")
 
 def print_warning(text):
     """打印警告信息"""
-    print(f"⚠️  {text}")
+    print(f"[WARN] {text}")
 
 def test_python_version():
     """測試 Python 版本"""
@@ -328,14 +328,14 @@ def main():
     total = len(results)
 
     for name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[PASS]" if result else "[FAIL]"
         print(f"  {status} - {name}")
 
     print(f"\n總計: {passed}/{total} 測試通過")
 
     if passed == total:
         print("\n" + "="*80)
-        print("  🎉 所有測試通過！系統已正確安裝。")
+        print("  [SUCCESS] 所有測試通過！系統已正確安裝。")
         print("="*80)
         print("\n下一步:")
         print("  1. 將視頻放入 input/ 目錄")
@@ -346,7 +346,7 @@ def main():
         return 0
     else:
         print("\n" + "="*80)
-        print(f"  ⚠️  {total - passed} 個測試失敗，請檢查上述錯誤。")
+        print(f"  [WARNING] {total - passed} 個測試失敗，請檢查上述錯誤。")
         print("="*80)
         print("\n常見問題:")
         print("  1. 依賴庫缺失: pip install numpy opencv-python pandas openpyxl pymediainfo")
