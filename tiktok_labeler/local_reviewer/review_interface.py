@@ -31,6 +31,7 @@ import shutil
 # 添加項目路徑
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
+from tiktok_labeler.config import LAYER1_BASE_DIR, LAYER2_BASE_DIR
 
 logging.basicConfig(
     level=logging.INFO,
@@ -67,14 +68,32 @@ class LocalReviewer:
 
         # 設置分類文件夾
         if base_output_dir:
-            self.base_output_dir = Path(base_output_dir)
+            resolved_base = Path(base_output_dir).resolve()
+            l1 = LAYER1_BASE_DIR.resolve()
+            l2 = LAYER2_BASE_DIR.resolve()
+            if resolved_base.is_relative_to(l1):
+                raise ValueError("base_output_dir cannot be in Layer 1 directory")
+            if not resolved_base.is_relative_to(l2):
+                raise ValueError("base_output_dir must be in Layer 2 directory")
+            if uncertain_videos:
+                first_video_path = Path(uncertain_videos[0]).resolve()
+                expected_base = first_video_path.parent.parent if first_video_path.parent.name == "not sure" else first_video_path.parent
+                if resolved_base != expected_base:
+                    raise ValueError(f"base_output_dir must match uncertain videos base dir: expected={expected_base}, got={resolved_base}")
+            self.base_output_dir = resolved_base
         elif uncertain_videos:
             # 自動推斷：從 "not sure" 文件夾的父目錄
-            first_video_path = Path(uncertain_videos[0])
+            first_video_path = Path(uncertain_videos[0]).resolve()
             if first_video_path.parent.name == "not sure":
                 self.base_output_dir = first_video_path.parent.parent
             else:
                 self.base_output_dir = first_video_path.parent
+            l1 = LAYER1_BASE_DIR.resolve()
+            l2 = LAYER2_BASE_DIR.resolve()
+            if self.base_output_dir.is_relative_to(l1):
+                raise ValueError("base_output_dir cannot be in Layer 1 directory")
+            if not self.base_output_dir.is_relative_to(l2):
+                raise ValueError("base_output_dir must be in Layer 2 directory")
         else:
             self.base_output_dir = None
 

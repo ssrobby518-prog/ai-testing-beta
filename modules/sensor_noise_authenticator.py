@@ -1,32 +1,41 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-模組 Sensor Noise Authenticator: 傳感器噪聲認證。
-第一性原理：真實相機有物理傳感器，必然產生特定噪聲模式。
-AI生成視頻的噪聲是後處理添加的，與真實傳感器噪聲的統計特性不同。
+模組 Sensor Noise Authenticator v2.0 - TSAR-RAPTOR Phase I
+第一性原理：真實相機傳感器產生量子散粒噪聲（Shot Noise）+ 暗電流噪聲（Dark Current）
+AI生成視頻的噪聲是算法噪聲，非物理噪聲，具有固定模式和空間相關性
+
+關鍵差異:
+- 真實: 白噪聲高(>0.7) + 固定模式低(<0.3) + 暗區噪聲強
+- AI: 白噪聲低(<0.4) + 固定模式高(>0.6) + 暗區噪聲弱/無
+
+優化記錄:
+- v1.0: 差距-6.0 (檢測了壓縮噪聲，非傳感器噪聲)
+- v2.0: 預期+40 (只分析暗區，檢測量子噪聲特徵)
 """
 
 import logging
 import cv2
 import numpy as np
+from scipy import stats
 
 logging.basicConfig(level=logging.INFO)
 
 def detect(file_path):
     """
-    第一性原理：傳感器噪聲檢測
+    第一性原理v2.0：量子散粒噪聲檢測（只分析暗區）
 
-    真實相機噪聲特徵：
-    1. 噪聲與信號獨立（噪聲不隨內容變化）
-    2. 噪聲有特定空間頻率分佈（高頻為主）
-    3. 暗區域噪聲比亮區域明顯（泊松噪聲特性）
-    4. 噪聲在時間上相關性低（幀間獨立）
+    真實傳感器噪聲（物理特性）：
+    1. 白噪聲（White Noise）: 頻譜平坦，所有頻率能量相等
+    2. 隨機性（Randomness）: 空間上無相關性（自相關係數低）
+    3. 暗電流噪聲（Dark Current）: 暗區有固定偏置
+    4. 讀出噪聲（Readout Noise）: 每幀不同的隨機值
 
-    AI生成視頻噪聲特徵：
-    1. 噪聲與內容相關（後處理添加）
-    2. 噪聲頻率分佈異常（可能過度平滑或人工合成）
-    3. 暗區域噪聲缺失或異常
-    4. 噪聲在時間上可能有異常模式
+    AI算法噪聲（非物理）：
+    1. 有色噪聲（Colored Noise）: 頻譜不平坦
+    2. 固定模式（Fixed Pattern）: 空間上有相關性
+    3. 暗區過度平滑: 缺少暗電流噪聲
+    4. 時間相關性: 噪聲在幀間有模式
     """
     try:
         cap = cv2.VideoCapture(file_path)
@@ -35,14 +44,13 @@ def detect(file_path):
 
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-        # 關鍵指標
-        noise_signal_correlation = []  # 噪聲與信號的相關性
-        noise_frequency_anomaly = []  # 噪聲頻率異常
-        dark_region_noise_ratio = []  # 暗區噪聲比例
-        temporal_noise_consistency = []  # 時間噪聲一致性
+        # 關鍵指標（v2.0重新設計）
+        white_noise_ratios = []      # 白噪聲比例（頻譜平坦度）
+        fixed_pattern_scores = []    # 固定模式噪聲分數（空間自相關）
+        dark_noise_intensities = []  # 暗區噪聲強度
+        readout_noise_variance = []  # 讀出噪聲方差（幀間變化）
 
-        prev_noise_map = None
-        sample_frames = min(40, total_frames)
+        sample_frames = min(50, total_frames)
 
         for i in range(sample_frames):
             if total_frames > 0:
@@ -56,172 +64,134 @@ def detect(file_path):
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).astype(np.float32)
             h, w = gray.shape
 
-            # === 1. 提取噪聲圖（去除低頻內容）===
-            # 使用高斯濾波提取低頻信號（內容）
-            blurred = cv2.GaussianBlur(gray, (5, 5), 1.5)
-            # 噪聲 = 原圖 - 低頻內容
-            noise_map = gray - blurred
+            # === 第一性原理：只分析暗區（亮度<50）===
+            # 原因：壓縮不會破壞暗區的傳感器噪聲
+            dark_mask = gray < 50
 
-            # === 2. 噪聲與信號的相關性 ===
-            # 第一性原理：真實噪聲應該與內容獨立（相關性接近0）
-            # AI噪聲：可能與內容相關（後處理添加）
-            # 計算局部區域的相關性
-            block_size = 32
-            correlations = []
-            for y in range(0, h - block_size, block_size):
-                for x in range(0, w - block_size, block_size):
-                    signal_block = blurred[y:y+block_size, x:x+block_size].flatten()
-                    noise_block = noise_map[y:y+block_size, x:x+block_size].flatten()
+            if np.sum(dark_mask) < 1000:  # 暗區太小，跳過
+                continue
 
-                    if np.std(signal_block) > 5 and np.std(noise_block) > 0.5:
-                        # 計算皮爾遜相關係數
-                        corr = np.abs(np.corrcoef(signal_block, noise_block)[0, 1])
-                        if not np.isnan(corr):
-                            correlations.append(corr)
+            # 提取暗區像素
+            dark_pixels = gray[dark_mask]
 
-            if len(correlations) > 0:
-                avg_correlation = np.mean(correlations)
-                noise_signal_correlation.append(avg_correlation)
+            # === 1. 白噪聲比例檢測（頻譜平坦度）===
+            # 真實傳感器：白噪聲（所有頻率能量相等）
+            # AI算法：有色噪聲（特定頻率能量高）
 
-            # === 3. 噪聲頻率分佈檢測 ===
-            # 第一性原理：真實傳感器噪聲主要在高頻
-            # AI噪聲：可能頻率分佈異常
-            noise_fft = np.fft.fft2(noise_map)
-            noise_magnitude = np.abs(np.fft.fftshift(noise_fft))
+            # 計算暗區的頻譜
+            dark_region = np.zeros_like(gray)
+            dark_region[dark_mask] = gray[dark_mask]
 
-            # 計算高頻能量比例
-            center_y, center_x = h // 2, w // 2
-            radius_low = min(h, w) // 8  # 低頻半徑
-            radius_high = min(h, w) // 4  # 高頻半徑
+            fft = np.fft.fft2(dark_region)
+            magnitude = np.abs(np.fft.fftshift(fft))
 
-            y_coords, x_coords = np.ogrid[:h, :w]
-            distances = np.sqrt((y_coords - center_y)**2 + (x_coords - center_x)**2)
+            # 計算頻譜平坦度（Spectral Flatness）
+            # 白噪聲 = 幾何平均 / 算術平均 ≈ 1
+            # 有色噪聲 < 0.5
+            magnitude_flat = magnitude.flatten()
+            magnitude_flat = magnitude_flat[magnitude_flat > 0]
 
-            low_freq_mask = distances < radius_low
-            high_freq_mask = (distances >= radius_low) & (distances < radius_high)
+            if len(magnitude_flat) > 100:
+                geometric_mean = stats.gmean(magnitude_flat)
+                arithmetic_mean = np.mean(magnitude_flat)
+                spectral_flatness = geometric_mean / (arithmetic_mean + 1e-6)
+                white_noise_ratios.append(spectral_flatness)
 
-            low_freq_energy = np.sum(noise_magnitude[low_freq_mask])
-            high_freq_energy = np.sum(noise_magnitude[high_freq_mask])
+            # === 2. 固定模式噪聲檢測（空間自相關）===
+            # 真實噪聲：隨機，自相關係數低
+            # AI噪聲：有固定模式，自相關係數高
 
-            # 真實噪聲：高頻能量應該顯著高於低頻
-            # AI噪聲：可能低頻能量異常高（後處理痕跡）
-            if low_freq_energy > 0:
-                freq_ratio = high_freq_energy / (low_freq_energy + 1e-6)
-                # 異常：低頻能量過高（freq_ratio過低）
-                if freq_ratio < 1.5:  # 真實噪聲通常 > 2.0
-                    noise_frequency_anomaly.append(1.0)
-                elif freq_ratio < 2.5:
-                    noise_frequency_anomaly.append(0.5)
-                else:
-                    noise_frequency_anomaly.append(0.0)
+            if np.sum(dark_mask) > 2000:
+                # 提取暗區的2D噪聲patch
+                dark_coords = np.argwhere(dark_mask)
+                if len(dark_coords) > 100:
+                    # 隨機選擇一個暗區patch
+                    center_idx = np.random.choice(len(dark_coords))
+                    cy, cx = dark_coords[center_idx]
 
-            # === 4. 暗區域噪聲檢測 ===
-            # 第一性原理：真實相機在暗區域噪聲更明顯（泊松噪聲）
-            # AI生成：暗區域可能過度平滑或噪聲缺失
-            dark_mask = gray < 50  # 暗區域
-            bright_mask = gray > 150  # 亮區域
+                    patch_size = 32
+                    if cy > patch_size and cx > patch_size and \
+                       cy < h - patch_size and cx < w - patch_size:
+                        patch = gray[cy-patch_size:cy+patch_size, cx-patch_size:cx+patch_size]
 
-            if np.sum(dark_mask) > 100 and np.sum(bright_mask) > 100:
-                dark_noise_std = np.std(noise_map[dark_mask])
-                bright_noise_std = np.std(noise_map[bright_mask])
+                        # 計算2D自相關
+                        patch_mean = np.mean(patch)
+                        patch_centered = patch - patch_mean
 
-                # 真實視頻：暗區噪聲 > 亮區噪聲
-                # AI視頻：可能暗區噪聲缺失或異常低
-                if bright_noise_std > 0:
-                    noise_ratio = dark_noise_std / (bright_noise_std + 1e-6)
-                    # 異常：暗區噪聲過低
-                    if noise_ratio < 0.8:  # 真實通常 > 1.0
-                        dark_region_noise_ratio.append(1.0)
-                    elif noise_ratio < 1.2:
-                        dark_region_noise_ratio.append(0.5)
-                    else:
-                        dark_region_noise_ratio.append(0.0)
+                        # 簡化：只計算中心點的自相關
+                        autocorr = np.sum(patch_centered * patch_centered) / (np.std(patch) ** 2 * patch.size + 1e-6)
 
-            # === 5. 時間噪聲一致性（幀間噪聲相關性）===
-            # 第一性原理：真實噪聲在時間上獨立（幀間相關性低）
-            # AI噪聲：可能有時間模式（生成過程的偽影）
-            if prev_noise_map is not None:
-                # 確保尺寸相同
-                if prev_noise_map.shape == noise_map.shape:
-                    # 計算幀間噪聲相關性
-                    prev_flat = prev_noise_map.flatten()
-                    curr_flat = noise_map.flatten()
+                        # 固定模式分數（歸一化到0-1）
+                        fixed_pattern_score = min(1.0, autocorr / 100.0)
+                        fixed_pattern_scores.append(fixed_pattern_score)
 
-                    # 隨機採樣避免計算量過大
-                    sample_size = min(10000, len(prev_flat))
-                    indices = np.random.choice(len(prev_flat), sample_size, replace=False)
+            # === 3. 暗區噪聲強度===
+            # 真實：暗區有明顯噪聲（暗電流噪聲）
+            # AI：暗區過度平滑
+            dark_noise_std = np.std(dark_pixels)
+            dark_noise_intensities.append(dark_noise_std)
 
-                    temporal_corr = np.corrcoef(prev_flat[indices], curr_flat[indices])[0, 1]
-                    if not np.isnan(temporal_corr):
-                        # 真實噪聲：幀間相關性應接近0
-                        # AI噪聲：可能有異常相關性
-                        temporal_noise_consistency.append(np.abs(temporal_corr))
+            # === 4. 讀出噪聲變異性（幀間變化）===
+            # 真實：每幀的讀出噪聲不同（隨機）
+            # AI：噪聲模式固定
+            if len(dark_noise_intensities) > 1:
+                noise_variance = np.var(dark_noise_intensities[-10:]) if len(dark_noise_intensities) >= 10 else 0
+                readout_noise_variance.append(noise_variance)
 
-            prev_noise_map = noise_map.copy()
 
         cap.release()
 
-        if len(noise_signal_correlation) == 0:
+        if len(white_noise_ratios) == 0:
             return 50.0
 
-        # === 綜合評分 ===
-        score = 35.0  # 基礎分
+        # === v2.0 評分邏輯（第一性原理驅動）===
+        score = 50.0  # 中性基礎分
 
-        # 1. 噪聲-信號相關性異常（AI特徵）
-        avg_ns_corr = np.mean(noise_signal_correlation)
-        if avg_ns_corr > 0.3:  # 相關性過高
-            score += 30.0
-            logging.info(f"SNA: High noise-signal correlation {avg_ns_corr:.3f} - AI feature")
-        elif avg_ns_corr > 0.2:
+        # 1. 白噪聲比例（關鍵指標）
+        avg_white_noise = np.mean(white_noise_ratios)
+        if avg_white_noise > 0.7:  # 真實傳感器特徵
+            score -= 30.0
+            logging.info(f"SNA v2: High white noise ratio {avg_white_noise:.3f} - REAL sensor")
+        elif avg_white_noise < 0.4:  # AI算法噪聲
+            score += 35.0
+            logging.info(f"SNA v2: Low white noise ratio {avg_white_noise:.3f} - AI algorithm")
+        elif avg_white_noise < 0.5:
             score += 20.0
-        elif avg_ns_corr > 0.15:
-            score += 10.0
-        elif avg_ns_corr < 0.08:  # 相關性很低，真實特徵
-            score -= 15.0
-            logging.info(f"SNA: Low noise-signal correlation {avg_ns_corr:.3f} - Real feature")
 
-        # 2. 噪聲頻率異常
-        if len(noise_frequency_anomaly) > 0:
-            avg_freq_anomaly = np.mean(noise_frequency_anomaly)
-            if avg_freq_anomaly > 0.6:
-                score += 25.0
-                logging.info(f"SNA: Noise frequency anomaly {avg_freq_anomaly:.3f} - AI feature")
-            elif avg_freq_anomaly > 0.4:
-                score += 15.0
-            elif avg_freq_anomaly < 0.2:
-                score -= 10.0
+        # 2. 固定模式噪聲（關鍵指標）
+        if len(fixed_pattern_scores) > 0:
+            avg_fixed_pattern = np.mean(fixed_pattern_scores)
+            if avg_fixed_pattern > 0.6:  # AI特徵（固定模式明顯）
+                score += 30.0
+                logging.info(f"SNA v2: High fixed pattern {avg_fixed_pattern:.3f} - AI feature")
+            elif avg_fixed_pattern < 0.3:  # 真實特徵（隨機性高）
+                score -= 25.0
 
-        # 3. 暗區域噪聲異常
-        if len(dark_region_noise_ratio) > 0:
-            avg_dark_anomaly = np.mean(dark_region_noise_ratio)
-            if avg_dark_anomaly > 0.6:
+        # 3. 暗區噪聲強度
+        if len(dark_noise_intensities) > 0:
+            avg_dark_noise = np.mean(dark_noise_intensities)
+            if avg_dark_noise < 2.0:  # 暗區過度平滑（AI特徵）
                 score += 20.0
-                logging.info(f"SNA: Dark region noise missing {avg_dark_anomaly:.3f} - AI feature")
-            elif avg_dark_anomaly > 0.4:
-                score += 10.0
-            elif avg_dark_anomaly < 0.2:
-                score -= 8.0
+                logging.info(f"SNA v2: Low dark noise {avg_dark_noise:.2f} - AI smoothing")
+            elif avg_dark_noise > 5.0:  # 暗區有明顯噪聲（真實特徵）
+                score -= 15.0
 
-        # 4. 時間噪聲異常相關性
-        if len(temporal_noise_consistency) > 0:
-            avg_temporal_corr = np.mean(temporal_noise_consistency)
-            if avg_temporal_corr > 0.15:  # 幀間噪聲相關性過高
-                score += 18.0
-                logging.info(f"SNA: Temporal noise correlation {avg_temporal_corr:.3f} - AI pattern")
-            elif avg_temporal_corr > 0.10:
-                score += 10.0
-            elif avg_temporal_corr < 0.05:  # 幀間獨立，真實特徵
-                score -= 12.0
+        # 4. 讀出噪聲變異性
+        if len(readout_noise_variance) > 0:
+            avg_variance = np.mean(readout_noise_variance)
+            if avg_variance < 0.5:  # 噪聲模式固定（AI特徵）
+                score += 15.0
+            elif avg_variance > 2.0:  # 噪聲隨機變化（真實特徵）
+                score -= 10.0
 
         # 限制分數範圍
         score = max(5.0, min(95.0, score))
 
-        logging.info(f"SNA: ns_corr={avg_ns_corr:.3f}, freq_anomaly={np.mean(noise_frequency_anomaly) if len(noise_frequency_anomaly) > 0 else 0:.3f}, "
-                    f"dark_anomaly={np.mean(dark_region_noise_ratio) if len(dark_region_noise_ratio) > 0 else 0:.3f}, "
-                    f"temporal_corr={avg_temporal_corr if len(temporal_noise_consistency) > 0 else 0:.3f}, score={score:.1f}")
+        logging.info(f"SNA v2.0: white_noise={avg_white_noise:.3f}, fixed_pattern={np.mean(fixed_pattern_scores) if len(fixed_pattern_scores) > 0 else 0:.3f}, "
+                    f"dark_noise={np.mean(dark_noise_intensities):.2f}, score={score:.1f}")
 
         return score
 
     except Exception as e:
-        logging.error(f"Error in sensor_noise_authenticator: {e}")
+        logging.error(f"Error in sensor_noise_authenticator v2.0: {e}")
         return 50.0

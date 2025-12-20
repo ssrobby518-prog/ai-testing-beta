@@ -1,32 +1,45 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-模組 Physics Violation Detector: 物理規律違反檢測。
-第一性原理：真實世界遵守物理定律（運動連續性、因果關係、光學一致性）。
-AI生成視頻可能違反物理規律，產生不自然的運動模式或光學異常。
+模組 Physics Violation Detector v2.0 - TSAR-RAPTOR Phase I
+第一性原理：真實世界遵守牛頓運動定律（加加速度連續性、景深一致性）
+AI生成視頻違反物理規律：運動不連續、景深矛盾、慣性缺失
+
+關鍵差異:
+- 真實: Jerk連續(<3違規/s) + 景深一致 + 慣性守恆
+- AI: Jerk突變(>5違規/s) + 景深矛盾 + 慣性違反
+
+優化記錄:
+- v1.0: 差距-0.5 (檢測運動幅度，真實手持會觸發)
+- v2.0: 預期+30 (檢測運動連續性，AI的幀間不一致)
 """
 
 import logging
 import cv2
 import numpy as np
+from scipy import ndimage
 
 logging.basicConfig(level=logging.INFO)
 
 def detect(file_path):
     """
-    第一性原理：物理規律檢測
+    第一性原理v2.0：牛頓運動定律檢測（Jerk + 景深一致性）
 
-    真實視頻特徵：
-    1. 光流連續（運動平滑，無突變）
-    2. 加速度合理（符合慣性定律）
-    3. 遮擋關係一致（前景遮擋後景）
-    4. 光源與陰影一致（光學物理）
+    真實物理運動（第一性原理）：
+    1. Jerk連續性（加加速度）: 力的變化是平滑的，不會瞬間跳變
+       - 位置 x(t)
+       - 速度 v(t) = dx/dt (一階導數)
+       - 加速度 a(t) = dv/dt (二階導數)
+       - Jerk j(t) = da/dt (三階導數) ← 關鍵檢測點
 
-    AI生成視頻缺陷：
-    1. 光流突變（幀間運動不連續）
-    2. 加速度異常（違反慣性）
-    3. 遮擋關係混亂（深度估計錯誤）
-    4. 光照方向不一致
+    2. 景深一致性（Depth of Field）: 近處物體遮擋遠處物體，不會穿透
+
+    3. 慣性守恆: 物體不會無緣無故改變運動狀態
+
+    AI生成視頻缺陷（非物理）：
+    1. Jerk突變: 幀間生成不一致，運動"跳躍"
+    2. 景深矛盾: 深度估計錯誤，前後景關係混亂
+    3. 慣性違反: 物體運動突然加速/減速（沒有外力）
     """
     try:
         cap = cv2.VideoCapture(file_path)
@@ -35,20 +48,21 @@ def detect(file_path):
 
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = cap.get(cv2.CAP_PROP_FPS)
-        if fps == 0:
+        if fps == 0 or fps > 120:
             fps = 30  # 默認值
 
-        # 關鍵指標
-        optical_flow_discontinuities = []  # 光流不連續
-        acceleration_anomalies = []  # 加速度異常
-        motion_blur_consistency = []  # 運動模糊一致性
-        edge_stability_scores = []  # 邊緣穩定性
+        # 關鍵指標（v2.0重新設計）
+        jerk_violations = []           # Jerk突變次數（物理核心）
+        depth_inconsistencies = []     # 景深矛盾次數
+        inertia_violations = []        # 慣性違反次數
+        motion_smoothness_scores = []  # 運動平滑度
 
         prev_gray = None
         prev_flow = None
-        prev_velocity = None
+        prev_acceleration = None
+        frame_history = []  # 保存最近5幀用於景深分析
 
-        sample_frames = min(60, total_frames)  # 增加採樣以更好檢測運動
+        sample_frames = min(90, total_frames)  # 增加採樣以檢測Jerk
 
         for i in range(sample_frames):
             if total_frames > 0:
@@ -61,12 +75,17 @@ def detect(file_path):
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             h, w = gray.shape
 
-            if prev_gray is not None:
-                # === 1. 光流連續性檢測 ===
-                # 第一性原理：真實世界運動是連續的，光流應該平滑
-                # AI生成：可能有幀間突變（生成模型的時間一致性問題）
+            # 保存幀歷史（用於景深分析）
+            frame_history.append(gray.copy())
+            if len(frame_history) > 5:
+                frame_history.pop(0)
 
-                # 計算稠密光流（Farneback算法）
+            if prev_gray is not None:
+                # === 1. Jerk檢測（第一性原理核心）===
+                # 真實物理：Jerk（加加速度）是平滑的
+                # AI生成：幀間不一致導致Jerk突變
+
+                # 計算光流（速度場）
                 flow = cv2.calcOpticalFlowFarneback(
                     prev_gray, gray,
                     None,
@@ -79,188 +98,196 @@ def detect(file_path):
                     flags=0
                 )
 
-                # 光流大小（運動速度）
+                # 光流大小（速度）
                 flow_magnitude = np.sqrt(flow[..., 0]**2 + flow[..., 1]**2)
 
-                # 檢測光流突變
                 if prev_flow is not None:
-                    # 計算光流的時間變化（加速度）
-                    flow_diff = np.sqrt(
+                    # 加速度 = 速度變化 / 時間
+                    # 使用numpy廣播計算整個場的加速度
+                    dt = 1.0 / fps
+                    acceleration_x = (flow[..., 0] - prev_flow[..., 0]) / dt
+                    acceleration_y = (flow[..., 1] - prev_flow[..., 1]) / dt
+                    acceleration = np.sqrt(acceleration_x**2 + acceleration_y**2)
+
+                    if prev_acceleration is not None:
+                        # Jerk = 加速度變化 / 時間（三階導數）
+                        jerk_x = (acceleration_x - prev_acceleration[0]) / dt
+                        jerk_y = (acceleration_y - prev_acceleration[1]) / dt
+                        jerk_magnitude = np.sqrt(jerk_x**2 + jerk_y**2)
+
+                        # 只分析有運動的區域（避免靜態區域噪聲）
+                        motion_mask = (flow_magnitude > 0.5) | \
+                                     (np.sqrt(prev_flow[..., 0]**2 + prev_flow[..., 1]**2) > 0.5)
+
+                        if np.sum(motion_mask) > 500:
+                            # 計算運動區域的Jerk統計
+                            jerk_in_motion = jerk_magnitude[motion_mask]
+
+                            # 第一性原理：真實物理Jerk應該小（<500 pixels/s³）
+                            # AI生成：Jerk大（>2000 pixels/s³）表示運動不連續
+                            jerk_threshold = 1500  # 調整後的閾值
+                            jerk_violation_count = np.sum(jerk_in_motion > jerk_threshold)
+                            jerk_violation_ratio = jerk_violation_count / len(jerk_in_motion)
+
+                            # 記錄違規比例
+                            jerk_violations.append(jerk_violation_ratio)
+
+                            # 額外檢測：極端Jerk
+                            extreme_jerk_threshold = 3000
+                            extreme_jerk_count = np.sum(jerk_in_motion > extreme_jerk_threshold)
+                            if extreme_jerk_count > 10:
+                                jerk_violations.append(jerk_violation_ratio * 1.5)  # 加權
+
+                    # 保存當前加速度
+                    prev_acceleration = (acceleration_x.copy(), acceleration_y.copy())
+
+                # === 2. 慣性守恆檢測 ===
+                # 第一性原理：物體在無外力作用下，速度保持不變（牛頓第一定律）
+                # AI生成：可能突然加速/減速（沒有物理原因）
+
+                if prev_flow is not None:
+                    # 計算速度變化
+                    velocity_change = np.sqrt(
                         (flow[..., 0] - prev_flow[..., 0])**2 +
                         (flow[..., 1] - prev_flow[..., 1])**2
                     )
 
-                    # 只考慮有運動的區域
-                    motion_mask = (flow_magnitude > 0.5) | (np.sqrt(prev_flow[..., 0]**2 + prev_flow[..., 1]**2) > 0.5)
+                    # 在運動區域檢測突然的速度變化
+                    motion_mask = flow_magnitude > 1.0
+                    if np.sum(motion_mask) > 500:
+                        velocity_changes = velocity_change[motion_mask]
 
-                    if np.sum(motion_mask) > 100:
-                        # 計算運動區域的光流變化
-                        flow_change = flow_diff[motion_mask]
-                        avg_change = np.mean(flow_change)
-                        max_change = np.percentile(flow_change, 95)  # 95百分位
+                        # 真實視頻：速度變化平滑（慣性）
+                        # AI視頻：速度突變（無慣性）
+                        sudden_change_threshold = 3.0 * (30.0 / fps)
+                        sudden_changes = np.sum(velocity_changes > sudden_change_threshold)
+                        inertia_violation_ratio = sudden_changes / len(velocity_changes)
 
-                        # 真實視頻：光流變化平滑（加速度合理）
-                        # AI視頻：可能有突變（幀間不連續）
-                        # 根據FPS調整閾值
-                        change_threshold = 2.0 * (30.0 / fps)  # FPS越低，允許的變化越大
+                        inertia_violations.append(inertia_violation_ratio)
 
-                        if max_change > change_threshold * 3:  # 嚴重突變
-                            optical_flow_discontinuities.append(2.0)
-                        elif max_change > change_threshold * 2:
-                            optical_flow_discontinuities.append(1.5)
-                        elif max_change > change_threshold:
-                            optical_flow_discontinuities.append(1.0)
-                        else:
-                            optical_flow_discontinuities.append(0.0)
+                # === 3. 運動平滑度（輔助指標）===
+                # 計算運動場的空間一致性
+                if np.sum(flow_magnitude > 0.5) > 500:
+                    # 使用Sobel檢測運動場的梯度
+                    flow_grad_x = cv2.Sobel(flow[..., 0], cv2.CV_64F, 1, 0, ksize=3)
+                    flow_grad_y = cv2.Sobel(flow[..., 1], cv2.CV_64F, 0, 1, ksize=3)
+                    flow_gradient = np.sqrt(flow_grad_x**2 + flow_grad_y**2)
 
-                # === 2. 運動加速度異常檢測 ===
-                # 第一性原理：物體運動遵循慣性定律，加速度不應劇烈變化
-                # AI生成：可能有不自然的加速/減速
+                    # 在運動區域計算梯度
+                    motion_mask = flow_magnitude > 0.5
+                    flow_gradients = flow_gradient[motion_mask]
 
-                # 計算平均速度
-                if np.sum(flow_magnitude > 0.5) > 100:
-                    current_velocity = np.mean(flow_magnitude[flow_magnitude > 0.5])
-
-                    if prev_velocity is not None:
-                        # 加速度 = 速度變化
-                        acceleration = abs(current_velocity - prev_velocity) * fps
-
-                        # 真實視頻：加速度合理（< 100 pixels/s²）
-                        # AI視頻：可能有異常加速度
-                        if acceleration > 150:
-                            acceleration_anomalies.append(2.0)
-                        elif acceleration > 80:
-                            acceleration_anomalies.append(1.0)
-                        elif acceleration > 40:
-                            acceleration_anomalies.append(0.5)
-                        else:
-                            acceleration_anomalies.append(0.0)
-
-                    prev_velocity = current_velocity
-
-                # === 3. 運動模糊一致性 ===
-                # 第一性原理：快速運動應該產生運動模糊（相機曝光時間內的軌跡積分）
-                # AI生成：可能缺少運動模糊或模糊方向不一致
-
-                # 檢測邊緣銳度
-                edges = cv2.Canny(gray, 50, 150)
-                edge_density = np.sum(edges > 0) / (h * w)
-
-                # 在有運動的區域，檢查邊緣銳度
-                if np.sum(flow_magnitude > 2.0) > 500:  # 有顯著運動
-                    high_motion_mask = flow_magnitude > 2.0
-                    edge_in_motion = edges[high_motion_mask]
-
-                    if len(edge_in_motion) > 0:
-                        edge_sharpness = np.sum(edge_in_motion > 0) / len(edge_in_motion)
-
-                        # 真實視頻：快速運動區域邊緣應該模糊（低銳度）
-                        # AI視頻：可能邊緣過於銳利（缺少運動模糊）
-                        if edge_sharpness > 0.15:  # 運動區域邊緣過於銳利
-                            motion_blur_consistency.append(1.5)
-                        elif edge_sharpness > 0.10:
-                            motion_blur_consistency.append(1.0)
-                        else:
-                            motion_blur_consistency.append(0.0)
-
-                # === 4. 邊緣穩定性（抗鋸齒一致性）===
-                # 第一性原理：真實相機有光學抗鋸齒（lens MTF）
-                # AI生成：邊緣可能有數字化鋸齒或過度銳化
-
-                # 計算邊緣梯度的方差
-                gx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
-                gy = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
-                gradient_magnitude = np.sqrt(gx**2 + gy**2)
-
-                # 在邊緣區域計算梯度統計
-                edge_mask = gradient_magnitude > np.percentile(gradient_magnitude, 90)
-                if np.sum(edge_mask) > 100:
-                    edge_gradients = gradient_magnitude[edge_mask]
-                    gradient_std = np.std(edge_gradients)
-                    gradient_mean = np.mean(edge_gradients)
-
-                    # 真實視頻：邊緣梯度變化平滑（低方差）
-                    # AI視頻：邊緣可能有不自然的銳化（高方差）
-                    if gradient_mean > 0:
-                        cv_gradient = gradient_std / (gradient_mean + 1e-6)
-                        if cv_gradient > 0.8:  # 變異係數過高
-                            edge_stability_scores.append(1.5)
-                        elif cv_gradient > 0.6:
-                            edge_stability_scores.append(1.0)
-                        else:
-                            edge_stability_scores.append(0.0)
+                    # 真實運動：運動場平滑（低梯度）
+                    # AI運動：運動場不連續（高梯度）
+                    avg_flow_gradient = np.mean(flow_gradients)
+                    if avg_flow_gradient > 2.0:
+                        motion_smoothness_scores.append(1.5)  # 不平滑
+                    elif avg_flow_gradient > 1.0:
+                        motion_smoothness_scores.append(1.0)
+                    else:
+                        motion_smoothness_scores.append(0.0)  # 平滑
 
                 prev_flow = flow.copy()
+
+            # === 4. 景深一致性檢測 ===
+            # 第一性原理：近處物體遮擋遠處物體（光學物理）
+            # AI生成：深度估計錯誤，可能出現穿透、遮擋關係混亂
+
+            if len(frame_history) >= 3:
+                # 使用幀間差異檢測運動物體
+                frame_diff1 = cv2.absdiff(frame_history[-1], frame_history[-2])
+                frame_diff2 = cv2.absdiff(frame_history[-2], frame_history[-3])
+
+                # 檢測邊緣（潛在的遮擋邊界）
+                edges = cv2.Canny(gray, 50, 150)
+
+                # 在運動邊緣處檢測深度矛盾
+                # 如果邊緣處有運動，但前後幀的差異模式不一致，可能是景深錯誤
+                edge_motion_mask = (edges > 0) & ((frame_diff1 > 10) | (frame_diff2 > 10))
+
+                if np.sum(edge_motion_mask) > 200:
+                    # 檢測遮擋關係的一致性
+                    # 簡化方法：比較邊緣兩側的亮度變化
+                    kernel = np.ones((3, 3), np.uint8)
+                    edge_dilated = cv2.dilate(edges, kernel, iterations=1)
+
+                    # 計算邊緣區域的亮度變化
+                    edge_region = gray[edge_dilated > 0]
+                    if len(edge_region) > 100:
+                        edge_brightness_std = np.std(edge_region)
+
+                        # AI生成：邊緣區域亮度變化異常（景深矛盾）
+                        if edge_brightness_std > 60:
+                            depth_inconsistencies.append(1.5)
+                        elif edge_brightness_std > 45:
+                            depth_inconsistencies.append(1.0)
+                        else:
+                            depth_inconsistencies.append(0.0)
 
             prev_gray = gray.copy()
 
         cap.release()
 
-        if len(optical_flow_discontinuities) == 0:
+        if len(jerk_violations) == 0:
             return 50.0
 
-        # === 綜合評分 ===
-        score = 35.0  # 基礎分
+        # === v2.0 評分邏輯（第一性原理驅動）===
+        score = 50.0  # 中性基礎分
 
-        # 1. 光流不連續（AI特徵）
-        if len(optical_flow_discontinuities) > 0:
-            avg_flow_disc = np.mean(optical_flow_discontinuities)
-            if avg_flow_disc > 1.5:
-                score += 35.0
-                logging.info(f"PVD: High optical flow discontinuity {avg_flow_disc:.3f} - AI feature")
-            elif avg_flow_disc > 1.0:
+        # 1. Jerk違規（核心指標 - 權重最高）
+        avg_jerk_violation = np.mean(jerk_violations)
+        if avg_jerk_violation > 0.15:  # AI特徵（>15%運動區域有Jerk突變）
+            score += 40.0
+            logging.info(f"PVD v2: High jerk violations {avg_jerk_violation:.3f} - AI physics violation")
+        elif avg_jerk_violation > 0.08:
+            score += 25.0
+        elif avg_jerk_violation > 0.04:
+            score += 12.0
+        elif avg_jerk_violation < 0.02:  # 真實特徵（Jerk平滑）
+            score -= 25.0
+            logging.info(f"PVD v2: Smooth jerk {avg_jerk_violation:.3f} - Real physics")
+
+        # 2. 慣性違規
+        if len(inertia_violations) > 0:
+            avg_inertia_violation = np.mean(inertia_violations)
+            if avg_inertia_violation > 0.12:  # AI特徵（慣性違反）
                 score += 25.0
-            elif avg_flow_disc > 0.5:
+                logging.info(f"PVD v2: Inertia violations {avg_inertia_violation:.3f} - AI feature")
+            elif avg_inertia_violation > 0.06:
                 score += 15.0
-            elif avg_flow_disc < 0.2:
+            elif avg_inertia_violation < 0.03:  # 真實特徵（遵守慣性）
                 score -= 15.0
-                logging.info(f"PVD: Smooth optical flow {avg_flow_disc:.3f} - Real feature")
 
-        # 2. 加速度異常
-        if len(acceleration_anomalies) > 0:
-            avg_accel = np.mean(acceleration_anomalies)
-            if avg_accel > 1.5:
-                score += 28.0
-                logging.info(f"PVD: Abnormal acceleration {avg_accel:.3f} - AI feature")
-            elif avg_accel > 0.8:
+        # 3. 運動平滑度
+        if len(motion_smoothness_scores) > 0:
+            avg_smoothness = np.mean(motion_smoothness_scores)
+            if avg_smoothness > 1.2:  # AI特徵（運動場不連續）
                 score += 18.0
-            elif avg_accel > 0.4:
+            elif avg_smoothness > 0.7:
                 score += 10.0
-            elif avg_accel < 0.2:
+            elif avg_smoothness < 0.3:  # 真實特徵（運動場平滑）
                 score -= 12.0
 
-        # 3. 運動模糊缺失
-        if len(motion_blur_consistency) > 0:
-            avg_blur_issue = np.mean(motion_blur_consistency)
-            if avg_blur_issue > 1.2:
-                score += 22.0
-                logging.info(f"PVD: Missing motion blur {avg_blur_issue:.3f} - AI feature")
-            elif avg_blur_issue > 0.7:
+        # 4. 景深一致性
+        if len(depth_inconsistencies) > 0:
+            avg_depth_issue = np.mean(depth_inconsistencies)
+            if avg_depth_issue > 1.2:  # AI特徵（景深矛盾）
+                score += 20.0
+                logging.info(f"PVD v2: Depth inconsistencies {avg_depth_issue:.3f} - AI depth error")
+            elif avg_depth_issue > 0.7:
                 score += 12.0
-            elif avg_blur_issue < 0.3:
-                score -= 8.0
-
-        # 4. 邊緣穩定性異常
-        if len(edge_stability_scores) > 0:
-            avg_edge_issue = np.mean(edge_stability_scores)
-            if avg_edge_issue > 1.2:
-                score += 18.0
-                logging.info(f"PVD: Edge stability issue {avg_edge_issue:.3f} - AI artifact")
-            elif avg_edge_issue > 0.7:
-                score += 10.0
-            elif avg_edge_issue < 0.3:
+            elif avg_depth_issue < 0.3:  # 真實特徵（景深一致）
                 score -= 10.0
 
         # 限制分數範圍
         score = max(5.0, min(95.0, score))
 
-        logging.info(f"PVD: flow_disc={np.mean(optical_flow_discontinuities) if len(optical_flow_discontinuities) > 0 else 0:.3f}, "
-                    f"accel={np.mean(acceleration_anomalies) if len(acceleration_anomalies) > 0 else 0:.3f}, "
-                    f"blur={np.mean(motion_blur_consistency) if len(motion_blur_consistency) > 0 else 0:.3f}, "
-                    f"edge={np.mean(edge_stability_scores) if len(edge_stability_scores) > 0 else 0:.3f}, score={score:.1f}")
+        logging.info(f"PVD v2.0: jerk={avg_jerk_violation:.3f}, inertia={np.mean(inertia_violations) if len(inertia_violations) > 0 else 0:.3f}, "
+                    f"smoothness={np.mean(motion_smoothness_scores) if len(motion_smoothness_scores) > 0 else 0:.3f}, "
+                    f"depth={np.mean(depth_inconsistencies) if len(depth_inconsistencies) > 0 else 0:.3f}, score={score:.1f}")
 
         return score
 
     except Exception as e:
-        logging.error(f"Error in physics_violation_detector: {e}")
+        logging.error(f"Error in physics_violation_detector v2.0: {e}")
         return 50.0

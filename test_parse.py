@@ -1,1 +1,2 @@
-print("Test parse")\n# -*- coding: utf-8 -*-\nprint("After encoding")
+print("Test parse")
+print("After encoding")

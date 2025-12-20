@@ -1,0 +1,52 @@
+2025-12-16 13:12:43,135 - INFO - Layer 1 流水線初始化完成
+2025-12-16 13:12:43,135 - INFO -   • 基礎目錄: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos
+2025-12-16 13:12:43,135 - INFO -   • Excel A: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_a_labels_raw.xlsx
+2025-12-16 13:12:43,135 - INFO -   • Excel B: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_b_features.xlsx
+2025-12-16 13:12:43,135 - INFO -   • Excel C: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_c_analysis.xlsx
+2025-12-16 13:12:43,774 - INFO - TikTok下載器（自動分類）初始化完成
+2025-12-16 13:12:43,774 - INFO -   • Excel A: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_a_labels_raw.xlsx
+2025-12-16 13:12:43,774 - INFO -   • 分類文件夾:
+2025-12-16 13:12:43,774 - INFO -     - real: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\real
+2025-12-16 13:12:43,774 - INFO -     - ai: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\ai
+2025-12-16 13:12:43,774 - INFO -     - uncertain: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\not sure
+2025-12-16 13:12:43,774 - INFO -     - exclude: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\movies
+2025-12-16 13:12:43,774 - INFO -   • 並行數: 4
+2025-12-16 13:12:43,774 - INFO -   • yt-dlp: C:\Python314\python.exe -m yt_dlp
+2025-12-16 13:12:44,151 - INFO - ✅ 已加載 10 條標註
+2025-12-16 13:12:44,154 - INFO - 📥 待下載: 1 個視頻（已下載: 10）
+2025-12-16 13:12:44,154 - INFO - 🚀 開始批量下載: 1 個視頻（並行數: 4）
+2025-12-16 13:12:44,159 - INFO - ⬇️  [ai] 下載: 1234567890123456789 (嘗試 1/3)
+2025-12-16 13:12:49,575 - WARNING - ⚠️  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 13:12:51,575 - INFO - ⬇️  [ai] 下載: 1234567890123456789 (嘗試 2/3)
+2025-12-16 13:12:55,531 - WARNING - ⚠️  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 13:12:57,532 - INFO - ⬇️  [ai] 下載: 1234567890123456789 (嘗試 3/3)
+2025-12-16 13:13:02,885 - WARNING - ⚠️  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 13:13:02,885 - INFO - 
+================================================================================
+2025-12-16 13:13:02,885 - INFO - 下載完成:
+2025-12-16 13:13:02,885 - INFO -   ✅ 成功: 0
+2025-12-16 13:13:02,885 - INFO -   ❌ 失敗: 1
+2025-12-16 13:13:02,885 - INFO -   分類統計:
+2025-12-16 13:13:02,886 - INFO -     - Real: 0
+2025-12-16 13:13:02,886 - INFO -     - AI: 0
+2025-12-16 13:13:02,886 - INFO -     - Uncertain: 0
+2025-12-16 13:13:02,886 - INFO -     - Movies: 0
+2025-12-16 13:13:02,886 - INFO -   失敗列表: 1234567890123456789...
+2025-12-16 13:13:02,886 - INFO - ================================================================================
+
+Traceback (most recent call last):
+  File "C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\pipeline\layer1_pipeline.py", line 467, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\pipeline\layer1_pipeline.py", line 452, in main
+    stats = pipeline.run_download_detect_report()
+  File "C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\pipeline\layer1_pipeline.py", line 205, in run_download_detect_report
+    p.unlink(missing_ok=True)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\pathlib\__init__.py", line 1047, in unlink
+    os.unlink(self)
+    ~~~~~~~~~^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\s_robby518\\Documents\\trae_projects\\ai testing\\tiktok_labeler\\tiktok tinder videos\\data\\layer1_detection_input\\601.mp4'

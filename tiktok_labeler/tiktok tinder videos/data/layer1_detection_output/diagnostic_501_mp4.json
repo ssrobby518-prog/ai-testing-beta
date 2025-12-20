@@ -1,0 +1,67 @@
+{
+  "file_path": "C:\\Users\\s_robby518\\Documents\\trae_projects\\ai testing\\tiktok_labeler\\tiktok tinder videos\\data\\layer1_detection_input\\501.mp4",
+  "global_probability": 40.0,
+  "threat_level": "GRAY_ZONE",
+  "module_scores": {
+    "frequency_analyzer": 37.0,
+    "texture_noise_detector": 95.0,
+    "model_fingerprint_detector": 96.0,
+    "lighting_geometry_checker": 30.0,
+    "heartbeat_detector": 50.0,
+    "blink_dynamics_analyzer": 50.0,
+    "text_fingerprinting": 20.0,
+    "sensor_noise_authenticator": 25.0,
+    "physics_violation_detector": 95.0
+  },
+  "weighted_scores": {
+    "frequency_analyzer": 19.240000000000002,
+    "texture_noise_detector": 123.5,
+    "model_fingerprint_detector": 43.2,
+    "lighting_geometry_checker": 18.0,
+    "heartbeat_detector": 23.25,
+    "blink_dynamics_analyzer": 25.0,
+    "text_fingerprinting": 28.0,
+    "sensor_noise_authenticator": 29.4,
+    "physics_violation_detector": 119.7
+  },
+  "critical_failure_points": [
+    {
+      "module": "model_fingerprint_detector",
+      "score": 96.0,
+      "severity": "CRITICAL",
+      "reason": "AI model fingerprint detected (seam/stutter/color anomaly)",
+      "fix_suggestion": "Apply geometric transform + temporal jitter + color grading"
+    },
+    {
+      "module": "texture_noise_detector",
+      "score": 95.0,
+      "severity": "CRITICAL",
+      "reason": "High score in texture_noise_detector",
+      "fix_suggestion": "General adversarial processing required"
+    },
+    {
+      "module": "physics_violation_detector",
+      "score": 95.0,
+      "severity": "CRITICAL",
+      "reason": "Unnatural motion or physics violation",
+      "fix_suggestion": "Apply optical flow smoothing + motion blur synthesis"
+    }
+  ],
+  "actionable_intel": [
+    {
+      "priority": "HIGH",
+      "message": "Video in GRAY ZONE - targeted fixes recommended",
+      "recommended_pipeline": [
+        "Apply geometric transform + temporal jitter + color grading",
+        "General adversarial processing required",
+        "Apply optical flow smoothing + motion blur synthesis"
+      ]
+    }
+  ],
+  "video_characteristics": {
+    "bitrate": 120348,
+    "face_presence": 0.1,
+    "static_ratio": 0.9487179487179487,
+    "is_phone_video": false
+  }
+}

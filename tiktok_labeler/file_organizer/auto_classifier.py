@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
+r"""
 TSAR-RAPTOR File Auto-Classifier
 自動將視頻分類移動到對應文件夾
 
@@ -43,10 +43,14 @@ class FileAutoClassifier:
             source_dir: 源視頻目錄
             base_output_dir: 分類輸出根目錄（None則使用source_dir的父目錄）
         """
-        self.source_dir = Path(source_dir)
+        self.source_dir = Path(source_dir).resolve()
 
         if base_output_dir:
-            self.base_output_dir = Path(base_output_dir)
+            resolved_base = Path(base_output_dir).resolve()
+            allowed = {self.source_dir, self.source_dir.parent}
+            if resolved_base not in allowed:
+                raise ValueError(f"base_output_dir must be source_dir or its parent: source_dir={self.source_dir}, base_output_dir={resolved_base}")
+            self.base_output_dir = resolved_base
         else:
             self.base_output_dir = self.source_dir.parent
 

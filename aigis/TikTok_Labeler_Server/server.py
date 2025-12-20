@@ -21,7 +21,11 @@ import time
 import base64
 import io
 import subprocess
+import sys
 import pandas as pd
+import importlib.util
+import re
+import hashlib
 
 app = Flask(__name__)
 CORS(app)
@@ -177,38 +181,249 @@ def _hydrate_loop():
     logging.info("[HYDRATE] Loop stopped")
 
 
+def _load_tsar_config(tiktok_labeler_dir: Path):
+    config_path = (tiktok_labeler_dir / 'config.py').resolve()
+    spec = importlib.util.spec_from_file_location('tsar_config', str(config_path))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _extract_numeric_video_id(url: str) -> str:
+    m = re.search(r'/video/(\d+)', str(url))
+    if not m:
+        return ''
+    s = str(m.group(1)).strip()
+    if not s.isdigit():
+        return ''
+    try:
+        return str(int(s))
+    except Exception:
+        return s.lstrip('0') or '0'
+
+
+def _map_label_to_tsar(label_value) -> str:
+    s = str(label_value).strip()
+    if s in {'0', 'REAL', 'real'}:
+        return 'REAL'
+    if s in {'1', 'AI', 'ai'}:
+        return 'AI'
+    if s.upper() in {'UNCERTAIN', 'NOT_SURE', 'NOT SURE'}:
+        return 'UNCERTAIN'
+    if s.upper() in {'EXCLUDE', 'MOVIE', 'MOVIES', 'MOVIE/ANIME'}:
+        return 'EXCLUDE'
+    if s.lower() == 'uncertain':
+        return 'UNCERTAIN'
+    if s.lower() == 'exclude':
+        return 'EXCLUDE'
+    return s.upper()
+
+
+def _export_aigis_dataset_to_tsar_excel_a(excel_a_path: Path) -> dict:
+    _flush_once()
+
+    if not DATASET_FILE.exists():
+        return {'written': 0, 'skipped': 0, 'reason': 'dataset_missing'}
+
+    df = pd.read_csv(DATASET_FILE, encoding='utf-8-sig')
+    if df.empty:
+        excel_a_path.parent.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(columns=['序號', '影片網址', '判定結果', '標註時間', '視頻ID', '作者', '標題', '點贊數', '來源', '版本']).to_excel(excel_a_path, index=False)
+        return {'written': 0, 'skipped': 0, 'reason': 'dataset_empty'}
+
+    rows = []
+    skipped = 0
+    for _, r in df.iterrows():
+        url = str(r.get('video_url', '')).strip()
+        ts = str(r.get('timestamp', '')).strip()
+        author = str(r.get('author_id', '')).strip() or 'unknown'
+        label = _map_label_to_tsar(r.get('label', ''))
+
+        u = url.lower()
+        if not url or not url.startswith('http'):
+            skipped += 1
+            continue
+        if ('/video/' not in u) and ('/t/' not in u) and ('vm.tiktok.com' not in u) and ('vt.tiktok.com' not in u):
+            skipped += 1
+            continue
+
+        video_id = _extract_numeric_video_id(url)
+        if not video_id:
+            if ('/t/' in u) or ('vm.tiktok.com' in u) or ('vt.tiktok.com' in u):
+                video_id = hashlib.md5(url.encode('utf-8')).hexdigest()[:10]
+            else:
+                skipped += 1
+                continue
+
+        rows.append({
+            '序號': len(rows) + 1,
+            '影片網址': url,
+            '判定結果': label,
+            '標註時間': ts or datetime.utcnow().isoformat(),
+            '視頻ID': video_id,
+            '作者': author,
+            '標題': 'N/A',
+            '點贊數': '0',
+            '來源': 'aigis',
+            '版本': str(r.get('source_version', 'aigis'))
+        })
+
+    excel_a_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(rows).to_excel(excel_a_path, index=False)
+    return {'written': len(rows), 'skipped': skipped, 'excel_a': str(excel_a_path)}
+
+
 @app.route('/api/label', methods=['POST'])
 def label():
     """
-    Phase 1: 快速標註 - 沙皇炸彈設計
+    Phase 1: 快速標註 - 沙皇炸彈設計 + 視頻直接上傳
 
-    只做一件事：記錄URL+標註到CSV
-    不下載、不分析，零延遲響應
+    兩種模式：
+    1. JSON (舊): 只記錄URL+標註到CSV
+    2. FormData (新): 標註 + 視頻blob直接上傳（繞過TikTok IP封鎖）
     """
-    data = request.json
-    url = data.get('video_url')
+    # 檢測請求類型
+    if request.content_type and 'multipart/form-data' in request.content_type:
+        # === 新模式：接收視頻blob ===
+        data_json = request.form.get('data')
+        if not data_json:
+            return jsonify({'error': 'Missing data field'}), 400
 
-    # 去重檢查
-    if url in loaded_urls:
+        import json
+        data = json.loads(data_json)
+        url = data.get('video_url')
+        video_id = data.get('video_id', '')
+
+        # 去重檢查
+        if url in loaded_urls:
+            return jsonify({
+                'status': 'duplicate',
+                'total_count': len(loaded_urls)
+            })
+
+        # 保存視頻文件
+        video_saved = False
+        if 'video' in request.files:
+            video_file = request.files['video']
+            if video_file and video_id:
+                # 保存到downloads目錄
+                save_path = DOWNLOADS_DIR / f"{video_id}.mp4"
+                try:
+                    video_file.save(str(save_path))
+                    video_saved = True
+                    logging.info(f"[UPLOAD] ✅ Video saved: {save_path} ({save_path.stat().st_size / 1024 / 1024:.2f} MB)")
+                except Exception as e:
+                    logging.error(f"[UPLOAD] ❌ Failed to save video: {e}")
+
+        # 緩衝入列（零阻塞返回）
+        with _buffer_lock:
+            _buffer_labels.append(data)
+            # 不加入hydrate queue，因為視頻已經上傳
+        loaded_urls.add(url)
+
+        # 立即返回
         return jsonify({
-            'status': 'duplicate',
-            'total_count': len(loaded_urls)
+            'status': 'queued',
+            'total_count': len(loaded_urls),
+            'video_saved': video_saved,
+            'message': f'Label + Video uploaded ({len(loaded_urls)} total)'
         })
 
-    # 緩衝入列（零阻塞返回）
-    with _buffer_lock:
-        _buffer_labels.append(data)
-        if url and url not in _hydrate_pending:
-            _hydrate_queue.append(url)
-            _hydrate_pending.add(url)
-    loaded_urls.add(url)
+    else:
+        # === 舊模式：只接收JSON標註 ===
+        data = request.json
+        url = data.get('video_url')
 
-    # 立即返回（零延遲）
-    return jsonify({
-        'status': 'queued',
-        'total_count': len(loaded_urls),
-        'message': f'Queued {len(loaded_urls)} labels (flush {int(BUFFER_INTERVAL*1000)}ms)'
-    })
+        # 去重檢查
+        if url in loaded_urls:
+            return jsonify({
+                'status': 'duplicate',
+                'total_count': len(loaded_urls)
+            })
+
+        # 緩衝入列（零阻塞返回）
+        with _buffer_lock:
+            _buffer_labels.append(data)
+            if url and url not in _hydrate_pending:
+                _hydrate_queue.append(url)
+                _hydrate_pending.add(url)
+        loaded_urls.add(url)
+
+        # 立即返回（零延遲）
+        return jsonify({
+            'status': 'queued',
+            'total_count': len(loaded_urls),
+            'message': f'Queued {len(loaded_urls)} labels (flush {int(BUFFER_INTERVAL*1000)}ms)'
+        })
+
+@app.route('/api/command', methods=['POST'])
+def command():
+    data = request.json or {}
+    cmd = str(data.get('command', '')).strip()
+    cmd_norm = cmd.replace('\u3000', '').replace(' ', '').strip()
+    logging.info(f"[COMMAND] cmd={cmd!r} norm={cmd_norm!r}")
+
+    if cmd_norm not in {'第一層下載', '第一层下载', '第一層重做', '第一层重做'}:
+        return jsonify({
+            'status': 'ignored',
+            'message': 'unknown_command'
+        })
+
+    repo_root = BASE_DIR.parent.parent
+    tiktok_labeler_dir = repo_root / 'tiktok_labeler'
+    pipeline_path = (tiktok_labeler_dir / 'pipeline' / 'layer1_pipeline.py').resolve()
+
+    try:
+        if not pipeline_path.exists():
+            return jsonify({
+                'status': 'error',
+                'message': f'pipeline_not_found:{pipeline_path}'
+            }), 500
+
+        cfg = _load_tsar_config(tiktok_labeler_dir)
+        cfg.ensure_directories()
+
+        excel_a_path = Path(cfg.EXCEL_A_PATH)
+        export_stats = _export_aigis_dataset_to_tsar_excel_a(excel_a_path)
+
+        log_dir = Path(cfg.LAYER1_DATA_DIR) / 'command_logs'
+        log_dir.mkdir(parents=True, exist_ok=True)
+        ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+        log_path = log_dir / f'layer1_download_{ts}.log'
+        log_fp = open(log_path, 'wb')
+
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf-8'
+
+        args = ['--download-only']
+        mode = 'download'
+        if '重做' in cmd_norm:
+            args = ['--redo-download']
+            mode = 'redo_download'
+
+        proc = subprocess.Popen(
+            [sys.executable, str(pipeline_path), *args],
+            cwd=str(tiktok_labeler_dir),
+            env=env,
+            stdout=log_fp,
+            stderr=subprocess.STDOUT,
+            creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0)
+        )
+        return jsonify({
+            'status': 'started',
+            'mode': mode,
+            'pid': proc.pid,
+            'layer1_dir': str(cfg.LAYER1_BASE_DIR),
+            'excel_a': str(excel_a_path),
+            'export': export_stats,
+            'log': str(log_path)
+        })
+    except Exception as e:
+        logging.error(f"[COMMAND] Failed: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 
 @app.route('/api/feature', methods=['POST'])

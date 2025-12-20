@@ -1,0 +1,8 @@
+[
+  {
+    "type": "threshold_adjustment",
+    "kill_threshold": 40,
+    "safe_threshold": 15,
+    "reason": "平均 AI 概率 69.0% > 50% → 降低門檻提高檢測靈敏度"
+  }
+]

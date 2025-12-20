@@ -9,10 +9,17 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from collections import defaultdict
+from datetime import datetime
+import sys
+import io
 
 BASE_DIR = Path(r"C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok videos download")
 DATA_DIR = BASE_DIR / "data"
 OUTPUT_DIR = Path("output")
+REPORT_DIR = BASE_DIR / "data" / "report"
+
+# Ensure report directory exists
+REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
 def load_training_data():
     """Load merged training dataset"""
@@ -210,33 +217,224 @@ def export_recommendations(recommendations, output_path):
 
     print(f"\n[OK] Recommendations exported to: {output_path}")
 
+def generate_word_report(report_content, timestamp_str):
+    """Generate Word document report"""
+    try:
+        from docx import Document
+        from docx.shared import Pt, RGBColor
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+        doc = Document()
+
+        # Title
+        title = doc.add_heading('Module Performance Analysis Report', 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        # Timestamp
+        timestamp_para = doc.add_paragraph(f'Generated: {timestamp_str}')
+        timestamp_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        doc.add_paragraph()  # Empty line
+
+        # Add report content
+        for line in report_content.split('\n'):
+            if line.strip().startswith('==='):
+                # Section header
+                doc.add_heading(line.strip('= '), level=2)
+            elif line.strip().startswith('---'):
+                # Subsection separator
+                doc.add_paragraph('_' * 80)
+            else:
+                # Regular content
+                doc.add_paragraph(line)
+
+        # Save
+        filename = f"module_analysis_report_{timestamp_str}.docx"
+        filepath = REPORT_DIR / filename
+        doc.save(str(filepath))
+        print(f"\n[OK] Word report saved: {filepath}")
+        return filepath
+
+    except ImportError:
+        print("\n[WARN] python-docx not installed. Skipping Word report.")
+        print("       Install with: pip install python-docx")
+        return None
+    except Exception as e:
+        print(f"\n[ERROR] Failed to generate Word report: {e}")
+        return None
+
+def generate_pdf_report(report_content, timestamp_str):
+    """Generate PDF report"""
+    try:
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+
+        filename = f"module_analysis_report_{timestamp_str}.pdf"
+        filepath = REPORT_DIR / filename
+
+        # Create PDF
+        doc = SimpleDocTemplate(
+            str(filepath),
+            pagesize=A4,
+            rightMargin=72,
+            leftMargin=72,
+            topMargin=72,
+            bottomMargin=18,
+        )
+
+        # Styles
+        styles = getSampleStyleSheet()
+
+        # Title style
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor='#2C3E50',
+            spaceAfter=30,
+            alignment=TA_CENTER
+        )
+
+        # Heading style
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=16,
+            textColor='#34495E',
+            spaceAfter=12,
+            spaceBefore=12
+        )
+
+        # Normal style
+        normal_style = ParagraphStyle(
+            'CustomNormal',
+            parent=styles['Normal'],
+            fontSize=10,
+            leading=14
+        )
+
+        # Build content
+        story = []
+
+        # Title
+        story.append(Paragraph("Module Performance Analysis Report", title_style))
+        story.append(Paragraph(f"Generated: {timestamp_str}", normal_style))
+        story.append(Spacer(1, 20))
+
+        # Process content
+        lines = report_content.split('\n')
+        for line in lines:
+            if line.strip().startswith('==='):
+                # Section header
+                story.append(Spacer(1, 12))
+                story.append(Paragraph(line.strip('= '), heading_style))
+            elif line.strip().startswith('---'):
+                # Separator
+                story.append(Spacer(1, 6))
+            elif line.strip():
+                # Regular content - escape HTML characters
+                escaped_line = line.replace('<', '&lt;').replace('>', '&gt;')
+                story.append(Paragraph(escaped_line, normal_style))
+            else:
+                story.append(Spacer(1, 6))
+
+        # Build PDF
+        doc.build(story)
+        print(f"[OK] PDF report saved: {filepath}")
+        return filepath
+
+    except ImportError:
+        print("\n[WARN] reportlab not installed. Skipping PDF report.")
+        print("       Install with: pip install reportlab")
+        return None
+    except Exception as e:
+        print(f"\n[ERROR] Failed to generate PDF report: {e}")
+        return None
+
+def capture_output(func):
+    """Decorator to capture function output"""
+    def wrapper(*args, **kwargs):
+        # Capture stdout
+        old_stdout = sys.stdout
+        sys.stdout = captured_output = io.StringIO()
+
+        try:
+            result = func(*args, **kwargs)
+            output = captured_output.getvalue()
+            return result, output
+        finally:
+            sys.stdout = old_stdout
+            # Print captured output
+            print(output, end='')
+
+    return wrapper
+
 def main():
-    print("="*80)
-    print("MODULE PERFORMANCE ANALYZER - First Principles Optimization")
-    print("="*80)
+    # Capture output
+    old_stdout = sys.stdout
+    sys.stdout = captured_output = io.StringIO()
 
-    # Load training data
-    df = load_training_data()
-    if df is None:
-        return
+    try:
+        print("="*80)
+        print("MODULE PERFORMANCE ANALYZER - First Principles Optimization")
+        print("="*80)
 
-    # Analyze false positives
-    fp_result = analyze_false_positives(df)
-    problem_modules = fp_result[0] if fp_result else []
+        # Load training data
+        df = load_training_data()
+        if df is None:
+            return
 
-    # Analyze false negatives
-    fn_result = analyze_false_negatives(df)
-    weak_modules = fn_result[0] if fn_result else []
+        # Analyze false positives
+        fp_result = analyze_false_positives(df)
+        problem_modules = fp_result[0] if fp_result else []
 
-    # Generate recommendations
-    recommendations = generate_optimization_recommendations(problem_modules, weak_modules, df)
+        # Analyze false negatives
+        fn_result = analyze_false_negatives(df)
+        weak_modules = fn_result[0] if fn_result else []
 
-    # Export
-    export_recommendations(recommendations, Path("optimization_recommendations.txt"))
+        # Generate recommendations
+        recommendations = generate_optimization_recommendations(problem_modules, weak_modules, df)
 
+        # Export
+        export_recommendations(recommendations, Path("optimization_recommendations.txt"))
+
+        print(f"\n{'='*80}")
+        print("ANALYSIS COMPLETE")
+        print(f"{'='*80}")
+
+        # Get captured output
+        report_content = captured_output.getvalue()
+
+    finally:
+        sys.stdout = old_stdout
+        # Print captured output to console
+        print(report_content, end='')
+
+    # Generate timestamp
+    timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Generate Word and PDF reports
     print(f"\n{'='*80}")
-    print("ANALYSIS COMPLETE")
+    print("GENERATING REPORTS")
     print(f"{'='*80}")
+
+    word_path = generate_word_report(report_content, timestamp_str)
+    pdf_path = generate_pdf_report(report_content, timestamp_str)
+
+    # Summary
+    print(f"\n{'='*80}")
+    print("REPORT GENERATION COMPLETE")
+    print(f"{'='*80}")
+    if word_path:
+        print(f"Word Report: {word_path}")
+    if pdf_path:
+        print(f"PDF Report: {pdf_path}")
+    print(f"\nReports saved to: {REPORT_DIR}")
 
 if __name__ == "__main__":
     main()

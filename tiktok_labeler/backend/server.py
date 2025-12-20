@@ -23,6 +23,9 @@ from pathlib import Path
 from datetime import datetime
 import logging
 import os
+import re
+import subprocess
+import sys
 
 logging.basicConfig(
     level=logging.INFO,
@@ -55,6 +58,93 @@ label_counts = {
 }
 
 
+def resolve_tiktok_url(url: str) -> str:
+    """
+    解析TikTok短網址為真實網址
+
+    短網址格式: vm.tiktok.com/xxx, vt.tiktok.com/xxx
+    真實網址格式: https://www.tiktok.com/@user/video/123456
+
+    Args:
+        url: 輸入URL（可能是短網址）
+
+    Returns:
+        真實完整URL
+    """
+    url = str(url).strip()
+
+    # 如果已經是完整URL（包含/video/），直接返回
+    if '/video/' in url and 'www.tiktok.com' in url:
+        return url
+
+    # 檢測短網址
+    if 'vm.tiktok.com' in url or 'vt.tiktok.com' in url or 'm.tiktok.com' in url:
+        try:
+            logger.info(f"🔗 解析短網址: {url}")
+
+            # 使用 yt-dlp 解析真實URL
+            cmd = [
+                sys.executable, "-m", "yt_dlp",
+                "--get-url",
+                "--no-warnings",
+                "--skip-download",
+                url
+            ]
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            if result.returncode == 0:
+                # yt-dlp 返回真實視頻URL
+                real_url = result.stdout.strip()
+
+                # 從返回的URL中提取 TikTok 網頁URL
+                # yt-dlp 可能返回直接下載URL，我們需要網頁URL
+                # 嘗試從stderr或其他方式獲取
+
+                # 使用 --dump-json 獲取完整信息
+                cmd2 = [
+                    sys.executable, "-m", "yt_dlp",
+                    "--dump-json",
+                    "--no-warnings",
+                    "--skip-download",
+                    url
+                ]
+
+                result2 = subprocess.run(
+                    cmd2,
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+
+                if result2.returncode == 0:
+                    import json
+                    info = json.loads(result2.stdout)
+                    webpage_url = info.get('webpage_url', '')
+                    if webpage_url:
+                        logger.info(f"✅ 解析成功: {webpage_url}")
+                        return webpage_url
+
+                # 如果 JSON 解析失敗，返回原始URL
+                logger.warning(f"⚠️  無法解析短網址，使用原始URL: {url}")
+                return url
+            else:
+                logger.warning(f"⚠️  解析短網址失敗: {result.stderr[:200]}")
+                return url
+
+        except Exception as e:
+            logger.error(f"❌ 解析短網址異常: {e}")
+            return url
+
+    # 不是短網址，直接返回
+    return url
+
+
 def initialize():
     """服務器啟動時初始化"""
     global loaded_urls, label_counts
@@ -80,13 +170,29 @@ def initialize():
                    f"Uncertain={label_counts['uncertain']}, "
                    f"Exclude={label_counts['exclude']}")
     else:
-        # 創建新的Excel A（調整列順序：重要信息前置）
+        # 創建新的Excel A（調整列順序：重要信息前置 + 下載狀態）
         df = pd.DataFrame(columns=[
-            '序號', '影片網址', '判定結果', '標註時間',
+            '序號', '影片網址', '判定結果', '下載狀態', '標註時間',
             '視頻ID', '作者', '標題', '點贊數', '來源', '版本'
         ])
         df.to_excel(EXCEL_A_PATH, index=False)
         logger.info("✅ 創建新的Excel A")
+
+    # 確保所有舊數據都有"下載狀態"列
+    if EXCEL_A_PATH.exists():
+        df = pd.read_excel(EXCEL_A_PATH)
+        if '下載狀態' not in df.columns:
+            df['下載狀態'] = '未下載'
+            # 調整列順序
+            cols = list(df.columns)
+            if '判定結果' in cols and '下載狀態' in cols:
+                # 將下載狀態移到判定結果後面
+                cols.remove('下載狀態')
+                idx = cols.index('判定結果') + 1
+                cols.insert(idx, '下載狀態')
+                df = df[cols]
+            df.to_excel(EXCEL_A_PATH, index=False)
+            logger.info("✅ 已添加「下載狀態」列到 Excel A")
 
 
 @app.route('/api/label', methods=['POST'])
@@ -116,17 +222,20 @@ def label():
     """
     try:
         data = request.json
-        url = data.get('url')
+        url_raw = data.get('url')
         label = data.get('label')
 
         # 驗證必填字段
-        if not url or not label:
+        if not url_raw or not label:
             return jsonify({
                 'status': 'error',
                 'message': '缺少必填字段 (url, label)'
             }), 400
 
-        # 去重檢查
+        # 解析短網址為真實網址
+        url = resolve_tiktok_url(url_raw)
+
+        # 去重檢查（使用真實URL）
         if url in loaded_urls:
             logger.info(f"⚠️  重複標註: {url}")
             return jsonify({
@@ -138,11 +247,12 @@ def label():
         # 讀取現有數據
         df_existing = pd.read_excel(EXCEL_A_PATH)
 
-        # 準備數據行（使用中文列名，重要信息前置）
+        # 準備數據行（使用中文列名，重要信息前置 + 下載狀態）
         new_row = {
             '序號': len(df_existing) + 1,  # 自動編號
-            '影片網址': url,
+            '影片網址': url,  # 真實網址（已解析）
             '判定結果': label.upper(),  # 大寫顯示 (REAL/AI/UNCERTAIN/EXCLUDE)
+            '下載狀態': '未下載',  # 初始狀態
             '標註時間': data.get('timestamp', datetime.now().isoformat()),
             '視頻ID': data.get('video_id', 'unknown'),
             '作者': data.get('author', 'unknown'),
@@ -241,18 +351,36 @@ def export_labels():
         # 讀取Excel A
         df = pd.read_excel(EXCEL_A_PATH)
 
+        url_col = '影片網址' if '影片網址' in df.columns else 'url'
+        label_col = '判定結果' if '判定結果' in df.columns else 'label'
+        video_id_col = '視頻ID' if '視頻ID' in df.columns else 'video_id'
+        author_col = '作者' if '作者' in df.columns else 'author'
+        title_col = '標題' if '標題' in df.columns else 'title'
+        likes_col = '點贊數' if '點贊數' in df.columns else 'likes'
+        ts_col = '標註時間' if '標註時間' in df.columns else 'timestamp'
+
         # 過濾標籤
         label_filter = request.args.get('label')
         if label_filter:
-            df = df[df['label'] == label_filter]
+            label_filter_lower = str(label_filter).strip().lower()
+            df = df[df[label_col].astype(str).str.lower() == label_filter_lower]
 
         # 限制數量
         limit = request.args.get('limit', type=int)
         if limit:
             df = df.head(limit)
 
-        # 轉換為JSON
-        labels = df.to_dict('records')
+        labels = []
+        for _, row in df.iterrows():
+            labels.append({
+                'url': row.get(url_col, ''),
+                'label': str(row.get(label_col, '')).lower(),
+                'video_id': str(row.get(video_id_col, 'unknown')),
+                'author': row.get(author_col, 'unknown'),
+                'title': row.get(title_col, 'N/A'),
+                'likes': row.get(likes_col, '0'),
+                'timestamp': row.get(ts_col, datetime.now().isoformat())
+            })
 
         return jsonify({
             'labels': labels,
@@ -280,15 +408,15 @@ def reset():
 
         # 備份舊數據
         if EXCEL_A_PATH.exists():
-            backup_path = DATA_DIR / f"excel_a_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+            backup_path = LAYER1_DATA_DIR / f"excel_a_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
             import shutil
             shutil.copy(EXCEL_A_PATH, backup_path)
             logger.info(f"✅ 已備份至: {backup_path}")
 
         # 重置
         df = pd.DataFrame(columns=[
-            'timestamp', 'url', 'video_id', 'author', 'title',
-            'likes', 'label', 'source', 'version'
+            '序號', '影片網址', '判定結果', '標註時間',
+            '視頻ID', '作者', '標題', '點贊數', '來源', '版本'
         ])
         df.to_excel(EXCEL_A_PATH, index=False)
 
@@ -313,7 +441,50 @@ def reset():
         }), 400
 
 
+@app.route('/api/command', methods=['POST'])
+def command():
+    try:
+        data = request.json or {}
+        cmd = str(data.get('command', '')).strip()
+
+        if cmd != '第一層下載':
+            return jsonify({
+                'status': 'ignored',
+                'message': 'unknown_command'
+            })
+
+        import subprocess
+        import sys
+
+        pipeline_path = (BASE_DIR.parent / 'pipeline' / 'layer1_pipeline.py').resolve()
+        result = subprocess.Popen(
+            [sys.executable, str(pipeline_path), '--download-detect-report'],
+            cwd=str(BASE_DIR.parent),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0)
+        )
+
+        return jsonify({
+            'status': 'started',
+            'pid': result.pid
+        })
+
+    except Exception as e:
+        logger.error(f"❌ 執行命令失敗: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
 if __name__ == '__main__':
+    import sys
+    import io
+
+    # 設置輸出編碼為 UTF-8
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
     print("="*80)
     print("🚀 TSAR-RAPTOR TikTok Labeler Backend Server")
     print("="*80)

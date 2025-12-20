@@ -1,0 +1,121 @@
+2025-12-16 12:25:11,240 - INFO - Layer 1 流水線初始化完成
+2025-12-16 12:25:11,241 - INFO -   ‧ 基礎目錄: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos
+2025-12-16 12:25:11,241 - INFO -   ‧ Excel A: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_a_labels_raw.xlsx
+2025-12-16 12:25:11,241 - INFO -   ‧ Excel B: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_b_features.xlsx
+2025-12-16 12:25:11,241 - INFO -   ‧ Excel C: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_c_analysis.xlsx
+2025-12-16 12:25:11,888 - INFO - TikTok下載器（自動分類）初始化完成
+2025-12-16 12:25:11,888 - INFO -   ‧ Excel A: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_a_labels_raw.xlsx
+2025-12-16 12:25:11,888 - INFO -   ‧ 分類文件夾:
+2025-12-16 12:25:11,888 - INFO -     - real: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\real
+2025-12-16 12:25:11,888 - INFO -     - ai: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\ai
+2025-12-16 12:25:11,888 - INFO -     - uncertain: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\not sure
+2025-12-16 12:25:11,888 - INFO -     - exclude: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\movies
+2025-12-16 12:25:11,888 - INFO -   ‧ 並行數: 4
+2025-12-16 12:25:11,888 - INFO -   ‧ yt-dlp: C:\Python314\python.exe -m yt_dlp
+2025-12-16 12:25:12,173 - INFO - \u2705 已加載 10 條標註
+2025-12-16 12:25:12,177 - INFO - \U0001f4e5 待下載: 10 個視頻（已下載: 1）
+2025-12-16 12:25:12,177 - INFO - \U0001f680 開始批量下載: 10 個視頻（並行數: 4）
+2025-12-16 12:25:12,179 - INFO - \u2b07\ufe0f  [ai] 下載: 3 (嘗試 1/3)
+2025-12-16 12:25:12,179 - INFO - \u2b07\ufe0f  [real] 下載: 101 (嘗試 1/3)
+2025-12-16 12:25:12,180 - INFO - \u2b07\ufe0f  [ai] 下載: 102 (嘗試 1/3)
+2025-12-16 12:25:12,180 - INFO - \u2b07\ufe0f  [real] 下載: 103 (嘗試 1/3)
+2025-12-16 12:25:15,661 - WARNING - \u26a0\ufe0f  [ai] 3 下載失敗: ERROR: [TikTok] 003: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:15,669 - WARNING - \u26a0\ufe0f  [real] 103 下載失敗: ERROR: [TikTok] 103: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:15,669 - WARNING - \u26a0\ufe0f  [ai] 102 下載失敗: ERROR: [TikTok] 102: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:15,669 - WARNING - \u26a0\ufe0f  [real] 101 下載失敗: ERROR: [TikTok] 101: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:17,662 - INFO - \u2b07\ufe0f  [ai] 下載: 3 (嘗試 2/3)
+2025-12-16 12:25:17,669 - INFO - \u2b07\ufe0f  [ai] 下載: 102 (嘗試 2/3)
+2025-12-16 12:25:17,669 - INFO - \u2b07\ufe0f  [real] 下載: 101 (嘗試 2/3)
+2025-12-16 12:25:17,669 - INFO - \u2b07\ufe0f  [real] 下載: 103 (嘗試 2/3)
+2025-12-16 12:25:20,517 - WARNING - \u26a0\ufe0f  [real] 101 下載失敗: ERROR: [TikTok] 101: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:20,581 - WARNING - \u26a0\ufe0f  [ai] 3 下載失敗: ERROR: [TikTok] 003: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:20,652 - WARNING - \u26a0\ufe0f  [ai] 102 下載失敗: ERROR: [TikTok] 102: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:20,892 - WARNING - \u26a0\ufe0f  [real] 103 下載失敗: ERROR: [TikTok] 103: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:22,517 - INFO - \u2b07\ufe0f  [real] 下載: 101 (嘗試 3/3)
+2025-12-16 12:25:22,582 - INFO - \u2b07\ufe0f  [ai] 下載: 3 (嘗試 3/3)
+2025-12-16 12:25:22,653 - INFO - \u2b07\ufe0f  [ai] 下載: 102 (嘗試 3/3)
+2025-12-16 12:25:22,893 - INFO - \u2b07\ufe0f  [real] 下載: 103 (嘗試 3/3)
+2025-12-16 12:25:25,236 - WARNING - \u26a0\ufe0f  [real] 101 下載失敗: ERROR: [TikTok] 101: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:25,236 - INFO - \u2b07\ufe0f  [ai] 下載: 201 (嘗試 1/3)
+2025-12-16 12:25:25,447 - WARNING - \u26a0\ufe0f  [ai] 102 下載失敗: ERROR: [TikTok] 102: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:25,447 - INFO - \u2b07\ufe0f  [real] 下載: 301 (嘗試 1/3)
+2025-12-16 12:25:25,701 - WARNING - \u26a0\ufe0f  [real] 103 下載失敗: ERROR: [TikTok] 103: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:25,701 - INFO - \u2b07\ufe0f  [ai] 下載: 302 (嘗試 1/3)
+2025-12-16 12:25:26,466 - WARNING - \u26a0\ufe0f  [ai] 3 下載失敗: ERROR: [TikTok] 003: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:26,466 - INFO - \u2b07\ufe0f  [ai] 下載: 501 (嘗試 1/3)
+2025-12-16 12:25:27,846 - WARNING - \u26a0\ufe0f  [real] 301 下載失敗: ERROR: [TikTok] 301: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:28,221 - WARNING - \u26a0\ufe0f  [ai] 302 下載失敗: ERROR: [TikTok] 302: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:28,464 - WARNING - \u26a0\ufe0f  [ai] 201 下載失敗: ERROR: [TikTok] 201: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:28,917 - WARNING - \u26a0\ufe0f  [ai] 501 下載失敗: ERROR: [TikTok] 501: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:29,847 - INFO - \u2b07\ufe0f  [real] 下載: 301 (嘗試 2/3)
+2025-12-16 12:25:30,222 - INFO - \u2b07\ufe0f  [ai] 下載: 302 (嘗試 2/3)
+2025-12-16 12:25:30,465 - INFO - \u2b07\ufe0f  [ai] 下載: 201 (嘗試 2/3)
+2025-12-16 12:25:30,918 - INFO - \u2b07\ufe0f  [ai] 下載: 501 (嘗試 2/3)
+2025-12-16 12:25:32,625 - WARNING - \u26a0\ufe0f  [real] 301 下載失敗: ERROR: [TikTok] 301: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:33,057 - WARNING - \u26a0\ufe0f  [ai] 302 下載失敗: ERROR: [TikTok] 302: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:33,205 - WARNING - \u26a0\ufe0f  [ai] 201 下載失敗: ERROR: [TikTok] 201: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:33,243 - WARNING - \u26a0\ufe0f  [ai] 501 下載失敗: ERROR: [TikTok] 501: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:34,625 - INFO - \u2b07\ufe0f  [real] 下載: 301 (嘗試 3/3)
+2025-12-16 12:25:35,058 - INFO - \u2b07\ufe0f  [ai] 下載: 302 (嘗試 3/3)
+2025-12-16 12:25:35,206 - INFO - \u2b07\ufe0f  [ai] 下載: 201 (嘗試 3/3)
+2025-12-16 12:25:35,244 - INFO - \u2b07\ufe0f  [ai] 下載: 501 (嘗試 3/3)
+2025-12-16 12:25:37,197 - WARNING - \u26a0\ufe0f  [real] 301 下載失敗: ERROR: [TikTok] 301: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:37,197 - INFO - \u2b07\ufe0f  [ai] 下載: 601 (嘗試 1/3)
+2025-12-16 12:25:37,838 - WARNING - \u26a0\ufe0f  [ai] 201 下載失敗: ERROR: [TikTok] 201: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:37,838 - INFO - \u2b07\ufe0f  [ai] 下載: 1234567890123456789 (嘗試 1/3)
+2025-12-16 12:25:37,885 - WARNING - \u26a0\ufe0f  [ai] 501 下載失敗: ERROR: [TikTok] 501: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:37,901 - WARNING - \u26a0\ufe0f  [ai] 302 下載失敗: ERROR: [TikTok] 302: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:40,939 - WARNING - \u26a0\ufe0f  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:42,384 - INFO - \u2705 [ai] 601 下載成功 (4.07 MB)
+2025-12-16 12:25:42,939 - INFO - \u2b07\ufe0f  [ai] 下載: 1234567890123456789 (嘗試 2/3)
+2025-12-16 12:25:46,063 - WARNING - \u26a0\ufe0f  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:48,063 - INFO - \u2b07\ufe0f  [ai] 下載: 1234567890123456789 (嘗試 3/3)
+2025-12-16 12:25:50,396 - WARNING - \u26a0\ufe0f  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 12:25:50,397 - INFO - 
+================================================================================
+2025-12-16 12:25:50,397 - INFO - 下載完成:
+2025-12-16 12:25:50,397 - INFO -   \u2705 成功: 1
+2025-12-16 12:25:50,397 - INFO -   \u274c 失敗: 9
+2025-12-16 12:25:50,397 - INFO -   分類統計:
+2025-12-16 12:25:50,397 - INFO -     - Real: 0
+2025-12-16 12:25:50,397 - INFO -     - AI: 1
+2025-12-16 12:25:50,397 - INFO -     - Uncertain: 0
+2025-12-16 12:25:50,397 - INFO -     - Movies: 0
+2025-12-16 12:25:50,397 - INFO -   失敗列表: 101, 102, 103, 3, 301, 201, 501, 302, 1234567890123456789...
+2025-12-16 12:25:50,397 - INFO - ================================================================================
+
+Traceback (most recent call last):
+  File "C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\pipeline\layer1_pipeline.py", line 456, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\pipeline\layer1_pipeline.py", line 443, in main
+    print("\n\u2705 Layer 1 下載+檢測+報告完成！")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'cp950' codec can't encode character '\u2705' in position 2: illegal multibyte sequence

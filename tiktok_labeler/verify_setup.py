@@ -165,7 +165,10 @@ def verify_dependencies():
         "openpyxl",
         "cv2",
         "scipy",
-        "numpy"
+        "numpy",
+        "pymediainfo",
+        "docx",
+        "reportlab"
     ]
 
     for dep in dependencies:
@@ -180,7 +183,13 @@ def verify_dependencies():
             print("[OK]")
         except ImportError:
             print("[ERROR] Not installed")
-            print(f"    Install: pip install {dep if dep != 'cv2' else 'opencv-python'}")
+            if dep == 'cv2':
+                pkg = 'opencv-python'
+            elif dep == 'docx':
+                pkg = 'python-docx'
+            else:
+                pkg = dep
+            print(f"    Install: pip install {pkg}")
 
     # 檢查 yt-dlp
     print(f"  * yt-dlp: ", end="")

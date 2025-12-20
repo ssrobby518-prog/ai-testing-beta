@@ -1,0 +1,66 @@
+2025-12-16 15:18:17,899 - INFO - Layer 1 流水線初始化完成
+2025-12-16 15:18:17,899 - INFO -   • 基礎目錄: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos
+2025-12-16 15:18:17,899 - INFO -   • Excel A: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_a_labels_raw.xlsx
+2025-12-16 15:18:17,899 - INFO -   • Excel B: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_b_features.xlsx
+2025-12-16 15:18:17,899 - INFO -   • Excel C: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_c_analysis.xlsx
+2025-12-16 15:18:18,274 - INFO - TikTok下載器（自動分類）初始化完成
+2025-12-16 15:18:18,274 - INFO -   • Excel A: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_a_labels_raw.xlsx
+2025-12-16 15:18:18,274 - INFO -   • 分類文件夾:
+2025-12-16 15:18:18,274 - INFO -     - real: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\real
+2025-12-16 15:18:18,274 - INFO -     - ai: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\ai
+2025-12-16 15:18:18,274 - INFO -     - uncertain: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\not sure
+2025-12-16 15:18:18,274 - INFO -     - exclude: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\movies
+2025-12-16 15:18:18,274 - INFO -   • 並行數: 8
+2025-12-16 15:18:18,274 - INFO -   • yt-dlp: C:\Python314\python.exe -m yt_dlp
+2025-12-16 15:18:18,468 - INFO - ✅ 已加載 12 條標註
+2025-12-16 15:18:18,470 - INFO - 📥 待下載: 4 個視頻（已下載: 10）
+2025-12-16 15:18:18,470 - INFO - 🚀 開始批量下載: 4 個視頻（並行數: 8）
+2025-12-16 15:18:18,471 - INFO - ⬇️  [ai] 下載: 003 (嘗試 1/3)
+2025-12-16 15:18:18,471 - INFO - ⬇️  [real] 下載: 0dd69984f4 (嘗試 1/3)
+2025-12-16 15:18:18,471 - INFO - ⬇️  [ai] 下載: 238c0fff58 (嘗試 1/3)
+2025-12-16 15:18:18,472 - INFO - ⬇️  [ai] 下載: 1234567890123456789 (嘗試 1/3)
+2025-12-16 15:18:20,546 - WARNING - ⚠️  [ai] 003 下載失敗: ERROR: [TikTok] 003: Your IP address is blocked from accessing this post
+
+2025-12-16 15:18:21,515 - WARNING - ⚠️  [real] 0dd69984f4 下載失敗: ERROR: Unsupported URL: https://www.tiktok.com/@test/video/alpha
+
+2025-12-16 15:18:21,516 - WARNING - ⚠️  [ai] 238c0fff58 下載失敗: ERROR: Unsupported URL: https://www.tiktok.com/@test/video/beta
+
+2025-12-16 15:18:21,696 - WARNING - ⚠️  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 15:18:23,546 - INFO - ⬇️  [ai] 下載: 003 (嘗試 2/3)
+2025-12-16 15:18:24,516 - INFO - ⬇️  [real] 下載: 0dd69984f4 (嘗試 2/3)
+2025-12-16 15:18:24,516 - INFO - ⬇️  [ai] 下載: 238c0fff58 (嘗試 2/3)
+2025-12-16 15:18:24,696 - INFO - ⬇️  [ai] 下載: 1234567890123456789 (嘗試 2/3)
+2025-12-16 15:18:25,494 - WARNING - ⚠️  [ai] 003 下載失敗: ERROR: [TikTok] 003: Your IP address is blocked from accessing this post
+
+2025-12-16 15:18:26,673 - WARNING - ⚠️  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 15:18:27,135 - WARNING - ⚠️  [ai] 238c0fff58 下載失敗: ERROR: Unsupported URL: https://www.tiktok.com/@test/video/beta
+
+2025-12-16 15:18:27,296 - WARNING - ⚠️  [real] 0dd69984f4 下載失敗: ERROR: Unsupported URL: https://www.tiktok.com/@test/video/alpha
+
+2025-12-16 15:18:28,494 - INFO - ⬇️  [ai] 下載: 003 (嘗試 3/3)
+2025-12-16 15:18:29,673 - INFO - ⬇️  [ai] 下載: 1234567890123456789 (嘗試 3/3)
+2025-12-16 15:18:30,135 - INFO - ⬇️  [ai] 下載: 238c0fff58 (嘗試 3/3)
+2025-12-16 15:18:30,297 - INFO - ⬇️  [real] 下載: 0dd69984f4 (嘗試 3/3)
+2025-12-16 15:18:30,385 - WARNING - ⚠️  [ai] 003 下載失敗: ERROR: [TikTok] 003: Your IP address is blocked from accessing this post
+
+2025-12-16 15:18:31,528 - WARNING - ⚠️  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 15:18:32,855 - WARNING - ⚠️  [ai] 238c0fff58 下載失敗: ERROR: Unsupported URL: https://www.tiktok.com/@test/video/beta
+
+2025-12-16 15:18:33,027 - WARNING - ⚠️  [real] 0dd69984f4 下載失敗: ERROR: Unsupported URL: https://www.tiktok.com/@test/video/alpha
+
+2025-12-16 15:18:33,028 - INFO - 
+================================================================================
+2025-12-16 15:18:33,028 - INFO - 下載完成:
+2025-12-16 15:18:33,028 - INFO -   ✅ 成功: 0
+2025-12-16 15:18:33,028 - INFO -   ❌ 失敗: 4
+2025-12-16 15:18:33,028 - INFO -   分類統計:
+2025-12-16 15:18:33,028 - INFO -     - Real: 0
+2025-12-16 15:18:33,028 - INFO -     - AI: 0
+2025-12-16 15:18:33,028 - INFO -     - Uncertain: 0
+2025-12-16 15:18:33,028 - INFO -     - Movies: 0
+2025-12-16 15:18:33,028 - INFO -   失敗列表: 003, 1234567890123456789, 238c0fff58, 0dd69984f4...
+2025-12-16 15:18:33,028 - INFO - ================================================================================
+

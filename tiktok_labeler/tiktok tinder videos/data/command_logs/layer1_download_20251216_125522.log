@@ -1,0 +1,61 @@
+2025-12-16 12:55:23,181 - INFO - Layer 1 流水線初始化完成
+2025-12-16 12:55:23,181 - INFO -   • 基礎目錄: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos
+2025-12-16 12:55:23,181 - INFO -   • Excel A: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_a_labels_raw.xlsx
+2025-12-16 12:55:23,181 - INFO -   • Excel B: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_b_features.xlsx
+2025-12-16 12:55:23,181 - INFO -   • Excel C: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_c_analysis.xlsx
+2025-12-16 12:55:24,144 - INFO - TikTok下載器（自動分類）初始化完成
+2025-12-16 12:55:24,144 - INFO -   • Excel A: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_a_labels_raw.xlsx
+2025-12-16 12:55:24,145 - INFO -   • 分類文件夾:
+2025-12-16 12:55:24,145 - INFO -     - real: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\real
+2025-12-16 12:55:24,145 - INFO -     - ai: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\ai
+2025-12-16 12:55:24,145 - INFO -     - uncertain: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\not sure
+2025-12-16 12:55:24,145 - INFO -     - exclude: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\movies
+2025-12-16 12:55:24,145 - INFO -   • 並行數: 4
+2025-12-16 12:55:24,145 - INFO -   • yt-dlp: C:\Python314\python.exe -m yt_dlp
+2025-12-16 12:55:24,474 - INFO - ✅ 已加載 10 條標註
+2025-12-16 12:55:24,478 - INFO - 📥 待下載: 9 個視頻（已下載: 2）
+2025-12-16 12:55:24,478 - INFO - 🚀 開始批量下載: 9 個視頻（並行數: 4）
+2025-12-16 12:55:24,487 - INFO - ✅ [ai] 3 快取複用成功 (1.36 MB)
+2025-12-16 12:55:24,487 - INFO - ✅ [real] 101 快取複用成功 (1.36 MB)
+2025-12-16 12:55:24,488 - INFO - ✅ [real] 103 快取複用成功 (1.15 MB)
+2025-12-16 12:55:24,489 - INFO - ✅ [ai] 102 快取複用成功 (2.24 MB)
+2025-12-16 12:55:24,494 - INFO - ✅ [ai] 201 快取複用成功 (3.36 MB)
+2025-12-16 12:55:24,495 - INFO - ✅ [ai] 501 快取複用成功 (0.17 MB)
+2025-12-16 12:55:24,495 - INFO - ✅ [real] 301 快取複用成功 (2.31 MB)
+2025-12-16 12:55:24,496 - INFO - ✅ [ai] 302 快取複用成功 (1.45 MB)
+2025-12-16 12:55:24,497 - INFO - ⬇️  [ai] 下載: 1234567890123456789 (嘗試 1/3)
+2025-12-16 12:55:30,622 - WARNING - ⚠️  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 12:55:32,623 - INFO - ⬇️  [ai] 下載: 1234567890123456789 (嘗試 2/3)
+2025-12-16 12:55:37,085 - WARNING - ⚠️  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 12:55:39,085 - INFO - ⬇️  [ai] 下載: 1234567890123456789 (嘗試 3/3)
+2025-12-16 12:55:45,500 - WARNING - ⚠️  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 12:55:45,520 - INFO - 
+================================================================================
+2025-12-16 12:55:45,520 - INFO - 下載完成:
+2025-12-16 12:55:45,520 - INFO -   ✅ 成功: 8
+2025-12-16 12:55:45,520 - INFO -   ❌ 失敗: 1
+2025-12-16 12:55:45,520 - INFO -   分類統計:
+2025-12-16 12:55:45,520 - INFO -     - Real: 3
+2025-12-16 12:55:45,520 - INFO -     - AI: 5
+2025-12-16 12:55:45,521 - INFO -     - Uncertain: 0
+2025-12-16 12:55:45,521 - INFO -     - Movies: 0
+2025-12-16 12:55:45,521 - INFO -   失敗列表: 1234567890123456789...
+2025-12-16 12:55:45,521 - INFO - ================================================================================
+
+Exception in thread Thread-14 (_readerthread):
+Traceback (most recent call last):
+  File "C:\Python314\Lib\threading.py", line 1081, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Python314\Lib\threading.py", line 1023, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\subprocess.py", line 1613, in _readerthread
+    buffer.append(fh.read())
+                  ~~~~~~~^^
+UnicodeDecodeError: 'cp950' codec can't decode byte 0xe2 in position 10: illegal multibyte sequence
+
+✅ Layer 1 下載+檢測+報告完成！

@@ -1,0 +1,51 @@
+{
+  "file_path": "C:\\Users\\s_robby518\\Documents\\trae_projects\\ai testing\\tiktok_labeler\\tiktok tinder videos\\data\\layer1_detection_input\\102.mp4",
+  "global_probability": 30.0,
+  "threat_level": "SAFE",
+  "module_scores": {
+    "frequency_analyzer": 25.0,
+    "texture_noise_detector": 5.0,
+    "model_fingerprint_detector": 59.0,
+    "lighting_geometry_checker": 5.0,
+    "heartbeat_detector": 50.0,
+    "blink_dynamics_analyzer": 50.0,
+    "text_fingerprinting": 5.0,
+    "sensor_noise_authenticator": 5.0,
+    "physics_violation_detector": 95.0
+  },
+  "weighted_scores": {
+    "frequency_analyzer": 21.125000000000004,
+    "texture_noise_detector": 6.5,
+    "model_fingerprint_detector": 39.825,
+    "lighting_geometry_checker": 3.0,
+    "heartbeat_detector": 23.25,
+    "blink_dynamics_analyzer": 25.0,
+    "text_fingerprinting": 7.0,
+    "sensor_noise_authenticator": 7.84,
+    "physics_violation_detector": 145.35
+  },
+  "critical_failure_points": [
+    {
+      "module": "physics_violation_detector",
+      "score": 95.0,
+      "severity": "CRITICAL",
+      "reason": "Unnatural motion or physics violation",
+      "fix_suggestion": "Apply optical flow smoothing + motion blur synthesis"
+    }
+  ],
+  "actionable_intel": [
+    {
+      "priority": "HIGH",
+      "message": "Video in GRAY ZONE - targeted fixes recommended",
+      "recommended_pipeline": [
+        "Apply optical flow smoothing + motion blur synthesis"
+      ]
+    }
+  ],
+  "video_characteristics": {
+    "bitrate": 1390251,
+    "face_presence": 1.0,
+    "static_ratio": 0.02564102564102564,
+    "is_phone_video": true
+  }
+}

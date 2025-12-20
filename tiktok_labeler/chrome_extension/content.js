@@ -146,6 +146,13 @@ document.addEventListener('keydown', async (e) => {
     return;
   }
 
+  if (e.code === 'Escape') {
+    e.preventDefault();
+    e.stopPropagation();
+    openCommandModal();
+    return;
+  }
+
   // 檢查是否為標註按鍵
   const mapping = CONFIG.KEY_MAPPING[e.code];
   if (!mapping) {
@@ -181,8 +188,7 @@ document.addEventListener('keydown', async (e) => {
 // ========== 提取視頻數據 ==========
 function extractVideoData() {
   try {
-    // 獲取當前URL
-    const url = window.location.href;
+    const url = normalizeTikTokUrl();
 
     // 提取視頻ID
     const videoIdMatch = url.match(/\/video\/(\d+)/);
@@ -215,6 +221,112 @@ function extractVideoData() {
     console.error('[TSAR-RAPTOR] 提取視頻數據失敗:', error);
     return null;
   }
+}
+
+function normalizeTikTokUrl() {
+  let url = window.location.href;
+
+  const canonical = document.querySelector('link[rel="canonical"]');
+  if (canonical && canonical.href) {
+    url = canonical.href;
+  } else {
+    const og = document.querySelector('meta[property="og:url"]');
+    if (og && og.content) {
+      url = og.content;
+    }
+  }
+
+  try {
+    const u = new URL(url);
+    u.hash = '';
+    u.search = '';
+    url = u.toString();
+  } catch (_) {
+  }
+
+  return url;
+}
+
+let commandModal = null;
+
+function openCommandModal() {
+  if (commandModal) {
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'tsar-command-overlay';
+  overlay.innerHTML = `
+    <div class="tsar-command-modal">
+      <div class="tsar-command-title">TSAR-RAPTOR 指令</div>
+      <input class="tsar-command-input" type="text" placeholder="輸入：第一層下載" />
+      <div class="tsar-command-actions">
+        <button class="tsar-command-cancel">取消</button>
+        <button class="tsar-command-submit">送出</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  commandModal = overlay;
+
+  const input = overlay.querySelector('.tsar-command-input');
+  const cancelBtn = overlay.querySelector('.tsar-command-cancel');
+  const submitBtn = overlay.querySelector('.tsar-command-submit');
+
+  const close = () => {
+    if (commandModal) {
+      commandModal.remove();
+      commandModal = null;
+    }
+  };
+
+  cancelBtn.addEventListener('click', close);
+  overlay.addEventListener('click', (ev) => {
+    if (ev.target === overlay) {
+      close();
+    }
+  });
+
+  const submit = async () => {
+    const cmd = (input.value || '').trim();
+    if (!cmd) {
+      close();
+      return;
+    }
+
+    try {
+      const resp = await fetch('http://127.0.0.1:5000/api/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: cmd })
+      });
+      const data = await resp.json();
+      if (data.status === 'started') {
+        showToast('✅ 已開始執行：第一層下載', 'success');
+      } else {
+        showToast('⚠️ 指令未執行', 'error');
+      }
+    } catch (err) {
+      console.error('[TSAR-RAPTOR] 指令送出失敗:', err);
+      showToast('⚠️ 指令送出失敗，請檢查後端', 'error');
+    } finally {
+      close();
+    }
+  };
+
+  submitBtn.addEventListener('click', submit);
+  input.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') {
+      ev.preventDefault();
+      submit();
+    } else if (ev.key === 'Escape') {
+      ev.preventDefault();
+      close();
+    }
+  });
+
+  input.focus();
 }
 
 // ========== 視覺反饋 ==========

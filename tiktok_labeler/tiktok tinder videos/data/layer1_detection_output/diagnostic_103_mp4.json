@@ -1,0 +1,61 @@
+{
+  "file_path": "C:\\Users\\s_robby518\\Documents\\trae_projects\\ai testing\\tiktok_labeler\\tiktok tinder videos\\data\\layer1_detection_input\\103.mp4",
+  "global_probability": 98.0,
+  "threat_level": "KILL_ZONE",
+  "module_scores": {
+    "frequency_analyzer": 25.0,
+    "texture_noise_detector": 25.0,
+    "model_fingerprint_detector": 90.0,
+    "lighting_geometry_checker": 45.0,
+    "heartbeat_detector": 50.0,
+    "blink_dynamics_analyzer": 50.0,
+    "text_fingerprinting": 5.0,
+    "sensor_noise_authenticator": 5.0,
+    "physics_violation_detector": 95.0
+  },
+  "weighted_scores": {
+    "frequency_analyzer": 13.0,
+    "texture_noise_detector": 32.5,
+    "model_fingerprint_detector": 40.5,
+    "lighting_geometry_checker": 27.0,
+    "heartbeat_detector": 23.25,
+    "blink_dynamics_analyzer": 25.0,
+    "text_fingerprinting": 7.0,
+    "sensor_noise_authenticator": 5.88,
+    "physics_violation_detector": 119.7
+  },
+  "critical_failure_points": [
+    {
+      "module": "physics_violation_detector",
+      "score": 95.0,
+      "severity": "CRITICAL",
+      "reason": "Unnatural motion or physics violation",
+      "fix_suggestion": "Apply optical flow smoothing + motion blur synthesis"
+    },
+    {
+      "module": "model_fingerprint_detector",
+      "score": 90.0,
+      "severity": "CRITICAL",
+      "reason": "AI model fingerprint detected (seam/stutter/color anomaly)",
+      "fix_suggestion": "Apply geometric transform + temporal jitter + color grading"
+    }
+  ],
+  "actionable_intel": [
+    {
+      "priority": "URGENT",
+      "message": "Video in KILL ZONE - requires comprehensive obfuscation",
+      "recommended_pipeline": [
+        "geometric_transform",
+        "noise_injection",
+        "temporal_jitter",
+        "audio_resampling"
+      ]
+    }
+  ],
+  "video_characteristics": {
+    "bitrate": 666236,
+    "face_presence": 0.2,
+    "static_ratio": 0.07692307692307693,
+    "is_phone_video": false
+  }
+}

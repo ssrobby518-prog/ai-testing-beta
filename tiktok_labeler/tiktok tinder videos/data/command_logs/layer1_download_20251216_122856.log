@@ -1,0 +1,125 @@
+2025-12-16 12:28:57,109 - INFO - Layer 1 流水線初始化完成
+2025-12-16 12:28:57,109 - INFO -   • 基礎目錄: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos
+2025-12-16 12:28:57,109 - INFO -   • Excel A: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_a_labels_raw.xlsx
+2025-12-16 12:28:57,109 - INFO -   • Excel B: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_b_features.xlsx
+2025-12-16 12:28:57,109 - INFO -   • Excel C: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_c_analysis.xlsx
+2025-12-16 12:28:58,051 - INFO - TikTok下載器（自動分類）初始化完成
+2025-12-16 12:28:58,051 - INFO -   • Excel A: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\data\excel_a_labels_raw.xlsx
+2025-12-16 12:28:58,051 - INFO -   • 分類文件夾:
+2025-12-16 12:28:58,051 - INFO -     - real: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\real
+2025-12-16 12:28:58,051 - INFO -     - ai: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\ai
+2025-12-16 12:28:58,051 - INFO -     - uncertain: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\not sure
+2025-12-16 12:28:58,051 - INFO -     - exclude: C:\Users\s_robby518\Documents\trae_projects\ai testing\tiktok_labeler\tiktok tinder videos\movies
+2025-12-16 12:28:58,051 - INFO -   • 並行數: 4
+2025-12-16 12:28:58,051 - INFO -   • yt-dlp: C:\Python314\python.exe -m yt_dlp
+2025-12-16 12:28:58,342 - INFO - ✅ 已加載 10 條標註
+2025-12-16 12:28:58,346 - INFO - 📥 待下載: 9 個視頻（已下載: 2）
+2025-12-16 12:28:58,346 - INFO - 🚀 開始批量下載: 9 個視頻（並行數: 4）
+2025-12-16 12:28:58,347 - INFO - ⬇️  [ai] 下載: 3 (嘗試 1/3)
+2025-12-16 12:28:58,348 - INFO - ⬇️  [real] 下載: 101 (嘗試 1/3)
+2025-12-16 12:28:58,348 - INFO - ⬇️  [ai] 下載: 102 (嘗試 1/3)
+2025-12-16 12:28:58,348 - INFO - ⬇️  [real] 下載: 103 (嘗試 1/3)
+2025-12-16 12:29:03,561 - WARNING - ⚠️  [real] 103 下載失敗: ERROR: [TikTok] 103: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:03,664 - WARNING - ⚠️  [ai] 102 下載失敗: ERROR: [TikTok] 102: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:03,954 - WARNING - ⚠️  [ai] 3 下載失敗: ERROR: [TikTok] 003: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:03,985 - WARNING - ⚠️  [real] 101 下載失敗: ERROR: [TikTok] 101: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:05,562 - INFO - ⬇️  [real] 下載: 103 (嘗試 2/3)
+2025-12-16 12:29:05,664 - INFO - ⬇️  [ai] 下載: 102 (嘗試 2/3)
+2025-12-16 12:29:05,954 - INFO - ⬇️  [ai] 下載: 3 (嘗試 2/3)
+2025-12-16 12:29:05,986 - INFO - ⬇️  [real] 下載: 101 (嘗試 2/3)
+2025-12-16 12:29:10,454 - WARNING - ⚠️  [real] 103 下載失敗: ERROR: [TikTok] 103: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:10,495 - WARNING - ⚠️  [ai] 102 下載失敗: ERROR: [TikTok] 102: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:10,591 - WARNING - ⚠️  [real] 101 下載失敗: ERROR: [TikTok] 101: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:11,402 - WARNING - ⚠️  [ai] 3 下載失敗: ERROR: [TikTok] 003: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:12,454 - INFO - ⬇️  [real] 下載: 103 (嘗試 3/3)
+2025-12-16 12:29:12,495 - INFO - ⬇️  [ai] 下載: 102 (嘗試 3/3)
+2025-12-16 12:29:12,591 - INFO - ⬇️  [real] 下載: 101 (嘗試 3/3)
+2025-12-16 12:29:13,402 - INFO - ⬇️  [ai] 下載: 3 (嘗試 3/3)
+2025-12-16 12:29:16,895 - WARNING - ⚠️  [real] 101 下載失敗: ERROR: [TikTok] 101: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:16,895 - INFO - ⬇️  [ai] 下載: 201 (嘗試 1/3)
+2025-12-16 12:29:17,308 - WARNING - ⚠️  [ai] 3 下載失敗: ERROR: [TikTok] 003: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:17,308 - INFO - ⬇️  [real] 下載: 301 (嘗試 1/3)
+2025-12-16 12:29:17,525 - WARNING - ⚠️  [ai] 102 下載失敗: ERROR: [TikTok] 102: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:17,525 - INFO - ⬇️  [ai] 下載: 302 (嘗試 1/3)
+2025-12-16 12:29:17,525 - WARNING - ⚠️  [real] 103 下載失敗: ERROR: [TikTok] 103: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:17,525 - INFO - ⬇️  [ai] 下載: 501 (嘗試 1/3)
+2025-12-16 12:29:21,080 - WARNING - ⚠️  [ai] 302 下載失敗: ERROR: [TikTok] 302: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:21,174 - WARNING - ⚠️  [real] 301 下載失敗: ERROR: [TikTok] 301: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:21,178 - WARNING - ⚠️  [ai] 201 下載失敗: ERROR: [TikTok] 201: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:21,575 - WARNING - ⚠️  [ai] 501 下載失敗: ERROR: [TikTok] 501: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:23,080 - INFO - ⬇️  [ai] 下載: 302 (嘗試 2/3)
+2025-12-16 12:29:23,175 - INFO - ⬇️  [real] 下載: 301 (嘗試 2/3)
+2025-12-16 12:29:23,179 - INFO - ⬇️  [ai] 下載: 201 (嘗試 2/3)
+2025-12-16 12:29:23,576 - INFO - ⬇️  [ai] 下載: 501 (嘗試 2/3)
+2025-12-16 12:29:27,354 - WARNING - ⚠️  [ai] 501 下載失敗: ERROR: [TikTok] 501: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:27,422 - WARNING - ⚠️  [real] 301 下載失敗: ERROR: [TikTok] 301: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:27,467 - WARNING - ⚠️  [ai] 201 下載失敗: ERROR: [TikTok] 201: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:27,605 - WARNING - ⚠️  [ai] 302 下載失敗: ERROR: [TikTok] 302: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:29,354 - INFO - ⬇️  [ai] 下載: 501 (嘗試 3/3)
+2025-12-16 12:29:29,422 - INFO - ⬇️  [real] 下載: 301 (嘗試 3/3)
+2025-12-16 12:29:29,468 - INFO - ⬇️  [ai] 下載: 201 (嘗試 3/3)
+2025-12-16 12:29:29,606 - INFO - ⬇️  [ai] 下載: 302 (嘗試 3/3)
+2025-12-16 12:29:32,599 - WARNING - ⚠️  [ai] 501 下載失敗: ERROR: [TikTok] 501: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:32,599 - INFO - ⬇️  [ai] 下載: 1234567890123456789 (嘗試 1/3)
+2025-12-16 12:29:32,858 - WARNING - ⚠️  [ai] 302 下載失敗: ERROR: [TikTok] 302: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:32,936 - WARNING - ⚠️  [ai] 201 下載失敗: ERROR: [TikTok] 201: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:33,218 - WARNING - ⚠️  [real] 301 下載失敗: ERROR: [TikTok] 301: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:35,128 - WARNING - ⚠️  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:37,128 - INFO - ⬇️  [ai] 下載: 1234567890123456789 (嘗試 2/3)
+2025-12-16 12:29:39,453 - WARNING - ⚠️  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:41,453 - INFO - ⬇️  [ai] 下載: 1234567890123456789 (嘗試 3/3)
+2025-12-16 12:29:43,896 - WARNING - ⚠️  [ai] 1234567890123456789 下載失敗: ERROR: [TikTok] 1234567890123456789: Your IP address is blocked from accessing this post
+
+2025-12-16 12:29:43,897 - INFO - 
+================================================================================
+2025-12-16 12:29:43,897 - INFO - 下載完成:
+2025-12-16 12:29:43,897 - INFO -   ✅ 成功: 0
+2025-12-16 12:29:43,897 - INFO -   ❌ 失敗: 9
+2025-12-16 12:29:43,897 - INFO -   分類統計:
+2025-12-16 12:29:43,897 - INFO -     - Real: 0
+2025-12-16 12:29:43,897 - INFO -     - AI: 0
+2025-12-16 12:29:43,897 - INFO -     - Uncertain: 0
+2025-12-16 12:29:43,897 - INFO -     - Movies: 0
+2025-12-16 12:29:43,897 - INFO -   失敗列表: 101, 3, 102, 103, 501, 302, 201, 301, 1234567890123456789...
+2025-12-16 12:29:43,897 - INFO - ================================================================================
+
+Exception in thread Thread-56 (_readerthread):
+Traceback (most recent call last):
+  File "C:\Python314\Lib\threading.py", line 1081, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Python314\Lib\threading.py", line 1023, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\subprocess.py", line 1613, in _readerthread
+    buffer.append(fh.read())
+                  ~~~~~~~^^
+UnicodeDecodeError: 'cp950' codec can't decode byte 0xe2 in position 10: illegal multibyte sequence
+
+✅ Layer 1 下載+檢測+報告完成！

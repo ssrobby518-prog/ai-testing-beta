@@ -1,14 +1,10 @@
-print("Script is being parsed")
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-print("At top level")
-print(__name__)
-print("Script started")
-"""
-總控系統 AutoTesting: 協調10模組檢測AI短影片。
+"""總控系統 AutoTesting: 協調10模組檢測AI短影片。
+
 ✅ 並行執行 + 計時確保60秒 + 生成單次/累積Excel報告。
 ✅ 加載配置 + 錯誤恢復，計算AI P值。
 """
-print("Starting AutoTesting")
 
 import os
 import time
@@ -19,16 +15,20 @@ import json
 
 logging.basicConfig(level=logging.INFO)
 
-INPUT_DIR = 'input'
-OUTPUT_DIR = 'output'
-DATA_DIR = 'output/data'
+INPUT_DIR = os.environ.get('INPUT_DIR', 'input')
+OUTPUT_DIR = os.environ.get('OUTPUT_DIR', 'output')
+DATA_DIR = os.environ.get('DATA_DIR', os.path.join(OUTPUT_DIR, 'data'))
 CUMULATIVE_FILE = os.path.join(DATA_DIR, 'cumulative.xlsx')
 MAX_TIME = 60
+try:
+    MAX_TIME = int(os.environ.get('MAX_TIME', str(MAX_TIME)))
+except Exception:
+    MAX_TIME = 60
 MODULE_NAMES = [
-    'metadata_extractor', 'frequency_analyzer', 'texture_noise_detector',
+    'frequency_analyzer', 'texture_noise_detector',
     'model_fingerprint_detector', 'lighting_geometry_checker', 'heartbeat_detector',
-    'blink_dynamics_analyzer', 'av_sync_verifier', 'text_fingerprinting',
-    'semantic_stylometry', 'sensor_noise_authenticator', 'physics_violation_detector'
+    'blink_dynamics_analyzer', 'text_fingerprinting',
+    'sensor_noise_authenticator', 'physics_violation_detector'
 ]
 
 def load_module(module_name):
@@ -124,38 +124,59 @@ def process_input():
 
         weights = {name: 1.0 for name in MODULE_NAMES}
 
-        # 降低不可靠模組的權重（基於訓練數據優化 2025-12-14）
-        weights['metadata_extractor'] = 0.3  # 元數據容易偽造
+        # 降低不可靠模組的權重（基於訓練數據優化 2025-12-15 - 42樣本分析）
         weights['heartbeat_detector'] = 0.465  # AI 可以模擬心跳！(-7% based on FP analysis)
         weights['blink_dynamics_analyzer'] = 0.5  # AI 可以模擬眨眼
         weights['lighting_geometry_checker'] = 0.6  # AI 可以模擬手持
-        weights['av_sync_verifier'] = 0.6  # AI 可以做好口型同步
 
         # 提高更可靠模組的權重（根據實際測試調整）
         weights['frequency_analyzer'] = 1.3  # 頻域分析更本質 (-13% based on FP analysis)
         weights['texture_noise_detector'] = 1.3  # 紋理分析較可靠
-        weights['model_fingerprint_detector'] = 1.1  # 模型指紋 (-50% based on FP analysis - 主要誤報源)
+        weights['model_fingerprint_detector'] = 0.9  # ⚠️ 主要誤報源！(誤報87.4 vs 正確30.3) - 進一步降低
         weights['text_fingerprinting'] = 1.4  # 文本模式是 AI 帶貨片的關鍵
-        weights['semantic_stylometry'] = 0.8  # 語義分析中等
 
         # 新模組：物理本質檢測（Project Aperture 戰略）
         weights['sensor_noise_authenticator'] = 1.96  # 傳感器噪聲 (-2% based on FP analysis)
         weights['physics_violation_detector'] = 1.8  # 物理規律違反是AI的根本缺陷
 
-        # ===== 社交媒體視頻檢測與權重調整 =====
-        # TikTok等平台的視頻經過激進壓縮，會產生誤報
-        # 擴大範圍：400k-1.5M（包含低bitrate視頻如Download 9: 437979）
-        # 兼容 TikTok Coconut Downloader 檔名
-        base_name = os.path.basename(file_path).lower()
-        is_social_media = (400000 < bitrate < 1500000) or ('download' in base_name)
+        # ===== 第一性原理：低Bitrate梯度保護機制（沙皇炸彈原則）=====
+        # 核心洞察（20251215.pdf - 42樣本分析）：
+        # - 誤報視頻平均bitrate: 0.56 Mbps（極低）
+        # - 正確判定視頻平均bitrate: 1.27 Mbps
+        # - 差距: -42% → 低bitrate是誤報的根本原因
+        #
+        # 物理原理（第一性原理）：
+        # - 低bitrate → 激進壓縮 → 產生偽AI特徵（接縫、色彩異常、高頻截斷）
+        # - 真實手機視頻通常 >800k bps（iPhone/Android標準）
+        # - TikTok等平台二次壓縮 → bitrate進一步降低
 
-        if is_social_media:
-            # 降低容易因壓縮而誤報的模組權重（基於低bitrate FP分析優化）
-            weights['frequency_analyzer'] = 0.65  # TikTok壓縮產生高頻截斷（進一步降低）
-            weights['sensor_noise_authenticator'] = 0.8  # 多次轉碼失去感測器雜訊
-            weights['physics_violation_detector'] = 1.0  # 快速剪輯/穩定處理容易誤判
-            weights['model_fingerprint_detector'] = 0.7  # 低bitrate壓縮產生偽AI特徵
-            logging.info(f"Social media video detected (bitrate={bitrate}), FA/SNA/PVD/MFP weights reduced")
+        base_name = os.path.basename(file_path).lower()
+        is_social_media = (bitrate > 0 and bitrate < 2_000_000) or ('download' in base_name)
+        bitrate_mbps = bitrate / 1_000_000.0  # 轉換為Mbps便於閱讀
+
+        # 梯度保護機制（bitrate越低，保護越強）
+        if bitrate > 0:
+            if bitrate < 800_000:  # <0.8 Mbps - 極低bitrate（嚴重壓縮）
+                # 🔴 紅色警戒：幾乎肯定是壓縮偽影
+                weights['model_fingerprint_detector'] *= 0.5  # 0.9 * 0.5 = 0.45
+                weights['frequency_analyzer'] *= 0.4         # 1.3 * 0.4 = 0.52
+                weights['sensor_noise_authenticator'] *= 0.6  # 1.96 * 0.6 = 1.18
+                weights['physics_violation_detector'] *= 0.7  # 1.8 * 0.7 = 1.26
+                logging.info(f"⚠️ ULTRA-LOW bitrate detected ({bitrate_mbps:.2f} Mbps) - Strong compression protection activated")
+
+            elif bitrate < 1_500_000:  # 0.8-1.5 Mbps - 低bitrate（社交媒體）
+                # 🟡 黃色警戒：可能是社交媒體二次壓縮
+                weights['model_fingerprint_detector'] *= 0.75  # 0.9 * 0.75 = 0.675
+                weights['frequency_analyzer'] *= 0.65         # 1.3 * 0.65 = 0.845
+                weights['sensor_noise_authenticator'] *= 0.8  # 1.96 * 0.8 = 1.568
+                weights['physics_violation_detector'] *= 0.85  # 1.8 * 0.85 = 1.53
+                logging.info(f"⚠️ LOW bitrate detected ({bitrate_mbps:.2f} Mbps) - Compression protection activated")
+
+            elif bitrate < 2_000_000:  # 1.5-2.0 Mbps - 中等bitrate
+                # 🟢 綠色警戒：輕度保護
+                weights['model_fingerprint_detector'] *= 0.9  # 0.9 * 0.9 = 0.81
+                weights['frequency_analyzer'] *= 0.85        # 1.3 * 0.85 = 1.105
+                logging.info(f"ℹ️ MEDIUM bitrate detected ({bitrate_mbps:.2f} Mbps) - Light compression protection")
 
         scores = {}
         weighted_scores = {}
@@ -177,7 +198,6 @@ def process_input():
         lg = scores.get('lighting_geometry_checker', 50.0)
         hb = scores.get('heartbeat_detector', 50.0)
         bd = scores.get('blink_dynamics_analyzer', 50.0)
-        avs = scores.get('av_sync_verifier', 50.0)
         tf = scores.get('text_fingerprinting', 50.0)
         sna = scores.get('sensor_noise_authenticator', 50.0)  # 傳感器噪聲認證
         pvd = scores.get('physics_violation_detector', 50.0)  # 物理規律違反
@@ -187,7 +207,7 @@ def process_input():
         # MFP 經過階段性設計，極端分數非常可靠，但需要其他模組驗證
 
         # 定義真實視頻保護條件（所有分支共用）
-        smartphone_real_dance = (is_phone_video and fa >= 65 and mfp <= 40 and tf <= 15 and avs <= 45 and static_ratio < 0.3 and tn <= 20 and lg <= 25)
+        smartphone_real_dance = (is_phone_video and fa >= 65 and mfp <= 40 and tf <= 15 and static_ratio < 0.3 and tn <= 20 and lg <= 25)
         smartphone_nightclub_real = (is_phone_video and mfp <= 12 and tf <= 35 and face_presence < 0.90 and static_ratio < 0.15)
         tiktok_reedit_real = (is_social_media and mfp <= 30 and 15 <= tf <= 50 and face_presence < 0.85 and static_ratio < 0.2)
         real_guard = smartphone_real_dance or smartphone_nightclub_real or tiktok_reedit_real
@@ -758,5 +778,3 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(DATA_DIR, exist_ok=True)
     process_input()
-
-# 繼續擴充到250行：添加配置載入、並行、錯誤處理等
