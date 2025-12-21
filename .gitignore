@@ -5,3 +5,10 @@ output/
 .DS_Store
 Thumbs.db
 nul
+
+# TikTok 下載的視頻文件（太大，不上傳）
+tiktok_labeler/tiktok videos download/
+*.mp4
+*.avi
+*.mov
+*.mkv
